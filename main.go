@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gorilla/mux"
-        //"cig-exchange-sso-backend/app"
+        "cig-exchange-sso-backend/app"
 	"os"
 	"fmt"
 	"net/http"
