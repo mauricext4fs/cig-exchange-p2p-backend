@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"net/http"
 	u "cig-exchange-sso-backend/utils"
+	"net/http"
 )
 
 var Ping = func(w http.ResponseWriter, r *http.Request) {
