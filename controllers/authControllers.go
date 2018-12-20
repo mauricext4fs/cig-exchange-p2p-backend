@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"net/http"
-	u "cig-exchange-sso-backend/utils"
 	"cig-exchange-sso-backend/models"
+	u "cig-exchange-sso-backend/utils"
 	"encoding/json"
+	"net/http"
 )
 
 var CreateAccount = func(w http.ResponseWriter, r *http.Request) {
@@ -32,4 +32,3 @@ var Authenticate = func(w http.ResponseWriter, r *http.Request) {
 	resp := models.Login(account.Email, account.Password)
 	u.Respond(w, resp)
 }
-
