@@ -6,7 +6,9 @@ This is a **API Blueprint** file that describes **CIG-Exchange p2p API**.
 
 # Group Ping
 
-## Ping Test [GET /api/ping]
+## api/ping [/api/ping]
+
+### Ping test [GET]
 Execute an api ping test.
 + Response 200 (application/json)
     + Attributes (Ping Response)
@@ -14,7 +16,42 @@ Execute an api ping test.
 
 # Group Offerings
 
-## Create a single offering [POST /api/offerings]
+## api/offerings/{offering_id} [/api/offerings/{offering_id}]
+
+### Retrieve offering [GET]
+Returns a specific Offering object.
+
++ Parameters
+    + offering_id: 1 (string, required) - The id of the offering
+
++ Response 200 (application/json)
+    + Attributes (Offering Response)
+
+### Update offering [PATCH]
+Updates a specific Offering object.
+Fields that are present in json will be updated, even when they are empty.
+
++ Parameters
+    + offering_id: 1 (string, required) - The id of the offering
+
++ Request (application/json)
+    + Attributes (Offering Request)
+
++ Response 200 (application/json)
+    + Attributes (Offering Response)
+
+### Delete offering [DELETE]
+Deletes a specific Offering object.
+
++ Parameters
+    + offering_id: 1 (string, required) - The id of the offering
+
++ Response 204
+
+
+## api/offerings [/api/offerings]
+
+### Create offering [POST]
 Creates a new Offering object.
 Offering 'id' is ignored in request and will be assigned in response.
 
@@ -24,24 +61,7 @@ Offering 'id' is ignored in request and will be assigned in response.
 + Response 200 (application/json)
     + Attributes (Offering Response)
 
-## Retrieve a single offering [GET /api/offerings/{offering_id}]
-Returns a specific Offering object.
-
-+ Parameters
-    + offering_id: 1 (string, required) - The id of the offering
-
-+ Response 200 (application/json)
-    + Attributes (Offering Response)
-
-## Delete an offering [DELETE /api/offerings/{offering_id}]
-Deletes a specific Offering object.
-
-+ Parameters
-    + offering_id: 1 (string, required) - The id of the offering
-
-+ Response 204
-
-## Retrieve all offerings [GET /api/offerings]
+### Retrieve all offerings [GET]
 Returns all Offerings available on the server.
 
 + Response 200 (application/json)
@@ -55,10 +75,30 @@ Returns all Offerings available on the server.
 + status: true (boolean, required) - ping response status
 
 ### Offering Request
-+ title: title (string, required) - offering title
++ title: title (string) - offering title
++ type: type1, type2 (array[string]) - offering types array
++ description: description (string) - offering description
++ rating: rating (string) - offering rating
++ amount: 200.98 (number) - offering amount
++ remaining: 100.66 (number) - offering remaining
++ interest: 10.5 (number) - offering interest
++ period: 300 (number) - offering period
++ platform: platform (string, required) - offering platform
 
 ### Offering Response
 + id: id (string, required) - offering id
 + title: title (string, required) - offering title
++ type: type1, type2 (array[string], required) - offering types array
++ description: description (string, required) - offering description
++ rating: rating (string, required) - offering rating
++ amount: 200.98 (number, required) - offering amount
++ remaining: 100.66 (number, required) - offering remaining
++ interest: 10.5 (number, required) - offering interest
++ period: 300 (number, required) - offering period
++ platform: platform (string, required) - offering platform
++ created_at: `2018-12-20T12:18:32+00:00` (string, required) - offering creation timestamp
++ updated_at: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
+
+
 
 
