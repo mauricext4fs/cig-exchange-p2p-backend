@@ -1,0 +1,64 @@
+FORMAT: 1A
+
+# CIG-Exchange p2p API
+This is a **API Blueprint** file that describes **CIG-Exchange p2p API**.
+
+
+# Group Ping
+
+## Ping Test [GET /api/ping]
+Execute an api ping test.
++ Response 200 (application/json)
+    + Attributes (Ping Response)
+
+
+# Group Offerings
+
+## Create a single offering [POST /api/offerings]
+Creates a new Offering object.
+Offering 'id' is ignored in request and will be assigned in response.
+
++ Request (application/json)
+    + Attributes (Offering Request)
+
++ Response 200 (application/json)
+    + Attributes (Offering Response)
+
+## Retrieve a single offering [GET /api/offerings/{offering_id}]
+Returns a specific Offering object.
+
++ Parameters
+    + offering_id: 1 (string, required) - The id of the offering
+
++ Response 200 (application/json)
+    + Attributes (Offering Response)
+
+## Delete an offering [DELETE /api/offerings/{offering_id}]
+Deletes a specific Offering object.
+
++ Parameters
+    + offering_id: 1 (string, required) - The id of the offering
+
++ Response 204
+
+## Retrieve all offerings [GET /api/offerings]
+Returns all Offerings available on the server.
+
++ Response 200 (application/json)
+    + Attributes (array[Offering Response])
+
+
+## Data Structures
+
+### Ping Response
++ message: Pong! (string, required) - ping response message
++ status: true (boolean, required) - ping response status
+
+### Offering Request
++ title: title (string, required) - offering title
+
+### Offering Response
++ id: id (string, required) - offering id
++ title: title (string, required) - offering title
+
+
