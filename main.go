@@ -1,8 +1,8 @@
 package main
 
 import (
-    "cig-exchange-sso-backend/app"
-    "cig-exchange-sso-backend/controllers"
+    "cig-exchange-p2p-backend/app"
+    "cig-exchange-p2p-backend/controllers"
     "fmt"
     "net/http"
     "github.com/gorilla/mux"

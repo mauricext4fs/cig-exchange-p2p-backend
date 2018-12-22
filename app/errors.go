@@ -1,7 +1,7 @@
 package app
 
 import (
-	u "cig-exchange-sso-backend/utils"
+	u "cig-exchange-p2p-backend/utils"
 	"net/http"
 )
 
