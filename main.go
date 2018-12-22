@@ -13,8 +13,6 @@ func main() {
     router := mux.NewRouter()
 
     router.HandleFunc("/api/ping", controllers.Ping).Methods("GET")
-    router.HandleFunc("/api/user/new", controllers.CreateAccount).Methods("POST")
-    router.HandleFunc("/api/user/login", controllers.Authenticate).Methods("POST")
     router.HandleFunc("/api/contacts/new", controllers.CreateContact).Methods("POST")
     router.HandleFunc("/api/me/contacts", controllers.GetContactsFor).Methods("GET") //  user/2/contacts
 
