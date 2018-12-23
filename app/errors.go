@@ -1,7 +1,7 @@
 package app
 
 import (
-	u "cig-exchange-p2p-backend/utils"
+	u "cig-exchange-libs"
 	"net/http"
 )
 
