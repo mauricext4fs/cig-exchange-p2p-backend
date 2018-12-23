@@ -1,7 +1,6 @@
 package models
 
 import (
-    u "cig-exchange-p2p-backend/utils"
     "os"
     "strings"
     "cig-exchange-libs"
@@ -30,11 +29,11 @@ type Account struct {
 func (account *Account) Validate() (map[string]interface{}, bool) {
 
     if !strings.Contains(account.Email, "@") {
-        return u.Message(false, "Email address is required"), false
+        return cigExchange.Message(false, "Email address is required"), false
     }
 
     if len(account.Password) < 6 {
-        return u.Message(false, "Password is required"), false
+        return cigExchange.Message(false, "Password is required"), false
     }
 
     //Email must be unique
@@ -43,13 +42,13 @@ func (account *Account) Validate() (map[string]interface{}, bool) {
     //check for errors and duplicate emails
     err := cigExchange.GetDB().Table("accounts").Where("email = ?", account.Email).First(temp).Error
     if err != nil && err != gorm.ErrRecordNotFound {
-        return u.Message(false, "Connection error. Please retry"), false
+        return cigExchange.Message(false, "Connection error. Please retry"), false
     }
     if temp.Email != "" {
-        return u.Message(false, "Email address already in use by another user."), false
+        return cigExchange.Message(false, "Email address already in use by another user."), false
     }
 
-    return u.Message(false, "Requirement passed"), true
+    return cigExchange.Message(false, "Requirement passed"), true
 }
 
 func (account *Account) Create() map[string]interface{} {
