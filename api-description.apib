@@ -16,39 +16,6 @@ Execute an api ping test.
 
 # Group Offerings
 
-## api/offerings/{offering_id} [/api/offerings/{offering_id}]
-
-### Retrieve offering [GET]
-Returns a specific Offering object.
-
-+ Parameters
-    + offering_id: 1 (string, required) - The id of the offering
-
-+ Response 200 (application/json)
-    + Attributes (Offering Response)
-
-### Update offering [PATCH]
-Updates a specific Offering object.
-Fields that are present in json will be updated, even when they are empty.
-
-+ Parameters
-    + offering_id: 1 (string, required) - The id of the offering
-
-+ Request (application/json)
-    + Attributes (Offering Request)
-
-+ Response 200 (application/json)
-    + Attributes (Offering Response)
-
-### Delete offering [DELETE]
-Deletes a specific Offering object.
-
-+ Parameters
-    + offering_id: 1 (string, required) - The id of the offering
-
-+ Response 204
-
-
 ## api/offerings [/api/offerings]
 
 ### Create offering [POST]
@@ -66,6 +33,38 @@ Returns all Offerings available on the server.
 
 + Response 200 (application/json)
     + Attributes (array[Offering Response])
+
+## api/offerings/{offering_id} [/api/offerings/{offering_id}]
+
+### Retrieve offering [GET]
+Returns a specific Offering object.
+
++ Parameters
+    + offering_id: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+
++ Response 200 (application/json)
+    + Attributes (Offering Response)
+
+### Update offering [PATCH]
+Updates a specific Offering object.
+Fields that are present in json will be updated, even when they are empty.
+
++ Parameters
+    + offering_id: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+
++ Request (application/json)
+    + Attributes (Offering Request)
+
++ Response 200 (application/json)
+    + Attributes (Offering Response)
+
+### Delete offering [DELETE]
+Deletes a specific Offering object.
+
++ Parameters
+    + offering_id: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+
++ Response 204
 
 
 ## Data Structures
@@ -86,7 +85,7 @@ Returns all Offerings available on the server.
 + platform: platform (string, required) - offering platform
 
 ### Offering Response
-+ id: id (string, required) - offering id
++ id: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - offering UUID
 + title: title (string, required) - offering title
 + type: type1, type2 (array[string], required) - offering types array
 + description: description (string, required) - offering description
@@ -98,7 +97,3 @@ Returns all Offerings available on the server.
 + platform: platform (string, required) - offering platform
 + created_at: `2018-12-20T12:18:32+00:00` (string, required) - offering creation timestamp
 + updated_at: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
-
-
-
-

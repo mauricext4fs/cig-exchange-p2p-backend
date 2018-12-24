@@ -3,8 +3,9 @@ package main
 import (
 	"cig-exchange-p2p-backend/controllers"
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -14,6 +15,11 @@ func main() {
 	router.HandleFunc("/api/ping", controllers.Ping).Methods("GET")
 	router.HandleFunc("/api/contacts/new", controllers.CreateContact).Methods("POST")
 	router.HandleFunc("/api/me/contacts", controllers.GetContactsFor).Methods("GET") //  user/2/contacts
+	router.HandleFunc("/api/offerings", controllers.CreateOffering).Methods("POST")
+	router.HandleFunc("/api/offerings", controllers.GetOfferings).Methods("GET")
+	router.HandleFunc("/api/offerings/{offering_id}", controllers.GetOffering).Methods("GET")
+	router.HandleFunc("/api/offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
+	router.HandleFunc("/api/offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
 
 	//attach JWT auth middleware
 	//router.Use(app.JwtAuthentication)
