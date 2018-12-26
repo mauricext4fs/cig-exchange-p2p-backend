@@ -16,6 +16,11 @@ func main() {
 	createdUUID := ""
 
 	h.After("Offerings > api/offerings > Create offering", func(t *trans.Transaction) {
+		// happens when api is down
+		if t.Real == nil {
+			return
+		}
+
 		body := map[string]interface{}{}
 
 		json.Unmarshal([]byte(t.Real.Body), &body)
