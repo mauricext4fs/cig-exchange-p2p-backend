@@ -1,0 +1,13 @@
+pages:
+  stage: deploy
+  image:
+    name: davidonlaptop/aglio
+    entrypoint: [""]
+  script:
+    - mkdir public
+    - aglio -i api-description.apib -o public/index.html
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
