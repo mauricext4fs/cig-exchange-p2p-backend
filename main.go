@@ -10,16 +10,18 @@ import (
 
 func main() {
 
+	baseUri := "/invest/api/"
+
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api/ping", controllers.Ping).Methods("GET")
-	router.HandleFunc("/api/contacts/new", controllers.CreateContact).Methods("POST")
-	router.HandleFunc("/api/me/contacts", controllers.GetContactsFor).Methods("GET") //  user/2/contacts
-	router.HandleFunc("/api/offerings", controllers.CreateOffering).Methods("POST")
-	router.HandleFunc("/api/offerings", controllers.GetOfferings).Methods("GET")
-	router.HandleFunc("/api/offerings/{offering_id}", controllers.GetOffering).Methods("GET")
-	router.HandleFunc("/api/offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
-	router.HandleFunc("/api/offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
+	router.HandleFunc(baseUri+"ping", controllers.Ping).Methods("GET")
+	router.HandleFunc(baseUri+"contacts/new", controllers.CreateContact).Methods("POST")
+	router.HandleFunc(baseUri+"me/contacts", controllers.GetContactsFor).Methods("GET") //  user/2/contacts
+	router.HandleFunc(baseUri+"offerings", controllers.CreateOffering).Methods("POST")
+	router.HandleFunc(baseUri+"offerings", controllers.GetOfferings).Methods("GET")
+	router.HandleFunc(baseUri+"offerings/{offering_id}", controllers.GetOffering).Methods("GET")
+	router.HandleFunc(baseUri+"offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
+	router.HandleFunc(baseUri+"offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
 
 	//attach JWT auth middleware
 	//router.Use(app.JwtAuthentication)
