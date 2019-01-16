@@ -1,16 +1,30 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
 	"cig-exchange-p2p-backend/controllers"
-	"fmt"
 	"net/http"
 
+	"os"
+	"fmt"
+    "strings"
 	"github.com/gorilla/mux"
 )
 
 func main() {
 
-	baseUri := "/invest/api/"
+	e := godotenv.Load()
+	if e != nil {
+		fmt.Print(e)
+	}
+
+	baseUri := os.Getenv("P2P_BACKEND_BASE_URI")
+    baseUri = strings.Replace(baseUri, "\"", "", -1)
+	fmt.Println("Base URI set to " + baseUri)
+
+    // For some god fucking reason using this does not work in router!!!!
+    baseUri = "/p2p/api/"
+
 
 	router := mux.NewRouter()
 
