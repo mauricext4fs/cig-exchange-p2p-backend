@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cig-exchange-libs/auth"
 	"cig-exchange-p2p-backend/controllers"
 	"net/http"
 
@@ -20,24 +21,27 @@ func main() {
 		fmt.Print(e)
 	}
 
-	baseUri := os.Getenv("P2P_BACKEND_BASE_URI")
-	baseUri = strings.Replace(baseUri, "\"", "", -1)
-	fmt.Println("Base URI set to " + baseUri)
-
-	// For some god fucking reason using this does not work in router!!!!
-	baseUri = "/p2p/api/"
+	baseURI := os.Getenv("P2P_BACKEND_BASE_URI")
+	baseURI = strings.Replace(baseURI, "\"", "", -1)
+	fmt.Println("Base URI set to " + baseURI)
 
 	router := mux.NewRouter()
 
-	router.HandleFunc(baseUri+"ping", controllers.Ping).Methods("GET")
-	router.HandleFunc(baseUri+"offerings", controllers.CreateOffering).Methods("POST")
-	router.HandleFunc(baseUri+"offerings", controllers.GetOfferings).Methods("GET")
-	router.HandleFunc(baseUri+"offerings/{offering_id}", controllers.GetOffering).Methods("GET")
-	router.HandleFunc(baseUri+"offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
-	router.HandleFunc(baseUri+"offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
+	userAPI := auth.NewUserAPI("p2p", baseURI)
 
-	//attach JWT auth middleware
-	//router.Use(app.JwtAuthentication)
+	router.HandleFunc(baseURI+"ping", controllers.Ping).Methods("GET")
+	router.HandleFunc(baseURI+"users/signup", userAPI.CreateUserHandler).Methods("POST")
+	router.HandleFunc(baseURI+"users/signin", userAPI.GetUserHandler).Methods("POST")
+	router.HandleFunc(baseURI+"users/send_otp", userAPI.SendCodeHandler).Methods("POST")
+	router.HandleFunc(baseURI+"users/verify_otp", userAPI.VerifyCodeHandler).Methods("POST")
+	router.HandleFunc(baseURI+"offerings", controllers.CreateOffering).Methods("POST")
+	router.HandleFunc(baseURI+"offerings", controllers.GetOfferings).Methods("GET")
+	router.HandleFunc(baseURI+"offerings/{offering_id}", controllers.GetOffering).Methods("GET")
+	router.HandleFunc(baseURI+"offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
+	router.HandleFunc(baseURI+"offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
+
+	// attach JWT auth middleware
+	router.Use(userAPI.JwtAuthenticationHandler)
 
 	//router.NotFoundHandler = app.NotFoundHandler
 
