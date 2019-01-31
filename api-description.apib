@@ -6,7 +6,7 @@ This is a **API Blueprint** file that describes **CIG-Exchange p2p API**.
 
 # Group Ping
 
-## api/ping [/api/ping]
+## p2p/api/ping [/p2p/api/ping]
 
 ### Ping test [GET]
 Execute an api ping test.
@@ -14,9 +14,59 @@ Execute an api ping test.
     + Attributes (Ping Response)
 
 
+# Group Users
+
+## p2p/api/users/signup [/p2p/api/users/signup]
+
+### Signup [POST]
+Create a new account.
+
++ Request (application/json)
+    + Attributes (User Request)
+
++ Response 200 (application/json)
+    + Attributes (User Response)
+
+## p2p/api/users/signin [/p2p/api/users/signin]
+
+### Signin [POST]
+Login to existing account.
+Either email or mobile should be specified.
+
++ Request (application/json)
+    + Attributes (User Signin Request)
+
++ Response 200 (application/json)
+    + Attributes (User Response)
+
+## p2p/api/users/send_otp [/p2p/api/users/send_otp]
+
+### Send OTP [POST]
+Send one time password.
+Supported types are "email" and "phone"
+
++ Request (application/json)
+    + Attributes (OTP Send Request)
+
++ Response 204
+
+## p2p/api/users/verify_otp [/p2p/api/users/verify_otp]
+
+### Verify OTP [POST]
+Verify one time password.
+Supported types are "email" and "phone".
+On success, jwt is returned.
+
++ Request (application/json)
+    + Attributes (OTP Verify Request)
+
++ Response 200 (application/json)
+    + Attributes (OTP Response)
+
+
 # Group Offerings
 
-## api/offerings [/api/offerings]
+## p2p/api/offerings [/p2p/api/offerings]
 
 ### Create offering [POST]
 Creates a new Offering object.
@@ -34,7 +84,7 @@ Returns all Offerings available on the server.
 + Response 200 (application/json)
     + Attributes (array[Offering Response])
 
-## api/offerings/{offering_id} [/api/offerings/{offering_id}]
+## p2p/api/offerings/{offering_id} [/p2p/api/offerings/{offering_id}]
 
 ### Retrieve offering [GET]
 Returns a specific Offering object.
@@ -72,6 +122,36 @@ Deletes a specific Offering object.
 ### Ping Response
 + message: Pong! (string, required) - ping response message
 + status: true (boolean, required) - ping response status
+
+
+### User Request
++ name: First Name (string, required) - user first name
++ lastname: Last Name (string, required) - user last name
++ sex: male (string, required) - user sex
++ email: email@email.com (string, required) - user email
++ phone_country_code: +1 (string, required) - user mobile number code
++ phone_number: 1111111111 (string, required) - user mobile number
+
+### User Signin Request
++ email: email@email.com (string) - user email
++ phone_country_code: +1 (string) - user mobile number code
++ phone_number: 1111111111 (string) - user mobile number
+
+### User Response
++ uuid: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
+
+### OTP Send Request
++ uuid: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
++ type: `email` (string, required) - otp type, supported values are 'email' and 'phone'
+
+### OTP Verify Request
++ uuid: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
++ type: `email` (string, required) - otp type, supported values are 'email' and 'phone'
++ code: `123456` (string, required) - otp code
+
+### OTP Response
++ jwt: `1234567890` (string, required) - jwt for futher auth
+
 
 ### Offering Request
 + title: title (string) - offering title
