@@ -90,7 +90,7 @@ var DeleteOffering = func(w http.ResponseWriter, r *http.Request) {
 var GetOfferings = func(w http.ResponseWriter, r *http.Request) {
 
 	// query all offerings from db
-	offerings, err := models.Getoffering()
+	offerings, err := models.GetOfferings()
 	if err != nil {
 		cigExchange.RespondWithError(w, 500, err)
 		return
