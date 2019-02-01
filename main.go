@@ -27,13 +27,9 @@ func main() {
 
 	router := mux.NewRouter()
 
-	userAPI := auth.NewUserAPI("p2p", baseURI)
+	userAPI := auth.NewUserAPI(auth.PlatformP2P, baseURI)
 
 	router.HandleFunc(baseURI+"ping", controllers.Ping).Methods("GET")
-	router.HandleFunc(baseURI+"users/signup", userAPI.CreateUserHandler).Methods("POST")
-	router.HandleFunc(baseURI+"users/signin", userAPI.GetUserHandler).Methods("POST")
-	router.HandleFunc(baseURI+"users/send_otp", userAPI.SendCodeHandler).Methods("POST")
-	router.HandleFunc(baseURI+"users/verify_otp", userAPI.VerifyCodeHandler).Methods("POST")
 	router.HandleFunc(baseURI+"offerings", controllers.CreateOffering).Methods("POST")
 	router.HandleFunc(baseURI+"offerings", controllers.GetOfferings).Methods("GET")
 	router.HandleFunc(baseURI+"offerings/{offering_id}", controllers.GetOffering).Methods("GET")
