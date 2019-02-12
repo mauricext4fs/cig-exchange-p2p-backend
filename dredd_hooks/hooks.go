@@ -77,22 +77,22 @@ func main() {
 	// update URI everywhere to point to a created record
 	h.Before("Offerings > p2p/api/offerings/{offering_id} > Retrieve offering", func(t *trans.Transaction) {
 		if len(createdUUID) > 0 {
-			t.Request.URI = "/api/offerings/" + createdUUID
-			t.FullPath = "/api/offerings/" + createdUUID
+			t.Request.URI = "/p2p/api/offerings/" + createdUUID
+			t.FullPath = "/p2p/api/offerings/" + createdUUID
 		}
 	})
 
 	h.Before("Offerings > p2p/api/offerings/{offering_id} > Update offering", func(t *trans.Transaction) {
 		if len(createdUUID) > 0 {
-			t.Request.URI = "/api/offerings/" + createdUUID
-			t.FullPath = "/api/offerings/" + createdUUID
+			t.Request.URI = "/p2p/api/offerings/" + createdUUID
+			t.FullPath = "/p2p/api/offerings/" + createdUUID
 		}
 	})
 
 	h.Before("Offerings > p2p/api/offerings/{offering_id} > Delete offering", func(t *trans.Transaction) {
 		if len(createdUUID) > 0 {
-			t.Request.URI = "/api/offerings/" + createdUUID
-			t.FullPath = "/api/offerings/" + createdUUID
+			t.Request.URI = "/p2p/api/offerings/" + createdUUID
+			t.FullPath = "/p2p/api/offerings/" + createdUUID
 		}
 	})
 
