@@ -69,7 +69,7 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	cigExchange.Respond(w, offering)
 }
 
-// DeleteOffering handles PATCH api/offerings/{offering_id} endpoint
+// DeleteOffering handles DELETE api/offerings/{offering_id} endpoint
 var DeleteOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	offeringID := mux.Vars(r)["offering_id"]
