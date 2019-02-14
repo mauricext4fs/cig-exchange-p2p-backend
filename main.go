@@ -32,11 +32,11 @@ func main() {
 	userAPI := auth.NewUserAPI(auth.PlatformP2P, baseURI, skipJWT)
 
 	router.HandleFunc(baseURI+"ping", controllers.Ping).Methods("GET")
-	router.HandleFunc(baseURI+"offerings", controllers.CreateOffering).Methods("POST")
-	router.HandleFunc(baseURI+"offerings", controllers.GetOfferings).Methods("GET")
-	router.HandleFunc(baseURI+"offerings/{offering_id}", controllers.GetOffering).Methods("GET")
-	router.HandleFunc(baseURI+"offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
-	router.HandleFunc(baseURI+"offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
+	router.HandleFunc(baseURI+"organisations/{organisation_id}/offerings", controllers.CreateOffering).Methods("POST")
+	router.HandleFunc(baseURI+"organisations/{organisation_id}/offerings", controllers.GetOfferings).Methods("GET")
+	router.HandleFunc(baseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.GetOffering).Methods("GET")
+	router.HandleFunc(baseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
+	router.HandleFunc(baseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
 
 	// attach JWT auth middleware
 	router.Use(userAPI.JwtAuthenticationHandler)

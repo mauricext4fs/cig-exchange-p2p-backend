@@ -16,11 +16,14 @@ Execute an api ping test.
 
 # Group Offerings
 
-## p2p/api/offerings [/p2p/api/offerings]
+## p2p/api/organisations/{organisation_id}/offerings [/p2p/api/organisations/{organisation_id}/offerings]
 
 ### Create offering [POST]
 Creates a new Offering object.
 Offering 'id' is ignored in request and will be assigned in response.
+
++ Parameters
+    + organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
 
 + Request (application/json)
     + Attributes (Offering Request)
@@ -31,15 +34,19 @@ Offering 'id' is ignored in request and will be assigned in response.
 ### Retrieve all offerings [GET]
 Returns all Offerings available on the server.
 
++ Parameters
+    + organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+
 + Response 200 (application/json)
     + Attributes (array[Offering Response])
 
-## p2p/api/offerings/{offering_id} [/p2p/api/offerings/{offering_id}]
+## p2p/api/organisations/{organisation_id}/offerings/{offering_id} [/p2p/api/organisations/{organisation_id}/offerings/{offering_id}]
 
 ### Retrieve offering [GET]
 Returns a specific Offering object.
 
 + Parameters
+    + organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
     + offering_id: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
 
 + Response 200 (application/json)
@@ -50,6 +57,7 @@ Updates a specific Offering object.
 Fields that are present in json will be updated, even when they are empty.
 
 + Parameters
+    + organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
     + offering_id: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
 
 + Request (application/json)
@@ -62,6 +70,7 @@ Fields that are present in json will be updated, even when they are empty.
 Deletes a specific Offering object.
 
 + Parameters
+    + organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
     + offering_id: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
 
 + Response 204
