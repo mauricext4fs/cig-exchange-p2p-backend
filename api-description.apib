@@ -23,7 +23,7 @@ Creates a new Offering object.
 Offering 'id' is ignored in request and will be assigned in response.
 
 + Parameters
-    + organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
 
 + Request (application/json)
     + Attributes (Offering Request)
@@ -35,7 +35,7 @@ Offering 'id' is ignored in request and will be assigned in response.
 Returns all Offerings available on the server.
 
 + Parameters
-    + organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
 
 + Response 200 (application/json)
     + Attributes (array[Offering Response])
@@ -46,8 +46,8 @@ Returns all Offerings available on the server.
 Returns a specific Offering object.
 
 + Parameters
-    + organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
-    + offering_id: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+    + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + `offering_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
 
 + Response 200 (application/json)
     + Attributes (Offering Response)
@@ -57,8 +57,8 @@ Updates a specific Offering object.
 Fields that are present in json will be updated, even when they are empty.
 
 + Parameters
-    + organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
-    + offering_id: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+    + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + `offering_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
 
 + Request (application/json)
     + Attributes (Offering Request)
@@ -70,8 +70,8 @@ Fields that are present in json will be updated, even when they are empty.
 Deletes a specific Offering object.
 
 + Parameters
-    + organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
-    + offering_id: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+    + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + `offering_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
 
 + Response 204
 
@@ -79,35 +79,35 @@ Deletes a specific Offering object.
 ## Data Structures
 
 ### Ping Response
-+ message: Pong! (string, required) - ping response message
-+ status: true (boolean, required) - ping response status
++ `message`: `Pong!` (string, required) - ping response message
++ `status`: `true` (boolean, required) - ping response status
 
 
 ### Offering Request
-+ title: title (string) - offering title
-+ type: type1, type2 (array[string]) - offering types array
-+ description: description (string) - offering description
-+ rating: rating (string) - offering rating
-+ amount: 200.98 (number) - offering amount
-+ remaining: 100.66 (number) - offering remaining
-+ interest: 10.5 (number) - offering interest
-+ period: 300 (number) - offering period
-+ is_visible: true (boolean) - offering visibility flag
-+ origin: origin (string) - offering origin
-+ organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
++ `title`: `title` (string) - offering title
++ `type`: `type1, type2` (array[string]) - offering types array
++ `description`: `description` (string) - offering description
++ `rating`: `rating` (string) - offering rating
++ `amount`: `200.98` (number) - offering amount
++ `remaining`: `100.66` (number) - offering remaining
++ `interest`: `10.5` (number) - offering interest
++ `period`: `300` (number) - offering period
++ `is_visible`: `true` (boolean) - offering visibility flag
++ `origin`: `origin` (string) - offering origin
++ `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
 
 ### Offering Response
-+ id: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - offering UUID
-+ title: title (string, required) - offering title
-+ type: type1, type2 (array[string], required) - offering types array
-+ description: description (string, required) - offering description
-+ rating: rating (string, required) - offering rating
-+ amount: 200.98 (number, required) - offering amount
-+ remaining: 100.66 (number, required) - offering remaining
-+ interest: 10.5 (number, required) - offering interest
-+ period: 300 (number, required) - offering period
-+ is_visible: true (boolean, required) - offering visibility flag
-+ origin: origin (string, required) - offering origin
-+ organisation_id: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
-+ created_at: `2018-12-20T12:18:32+00:00` (string, required) - offering creation timestamp
-+ updated_at: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
++ `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - offering UUID
++ `title`: `title` (string, required) - offering title
++ `type`: `type1, type2` (array[string], required) - offering types array
++ `description`: `description` (string, required) - offering description
++ `rating`: `rating` (string, required) - offering rating
++ `amount`: `200.98` (number, required) - offering amount
++ `remaining`: `100.66` (number, required) - offering remaining
++ `interest`: `10.5` (number, required) - offering interest
++ `period`: `300` (number, required) - offering period
++ `is_visible`: `true` (boolean, required) - offering visibility flag
++ `origin`: `origin` (string, required) - offering origin
++ `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
++ `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering creation timestamp
++ `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
