@@ -19,9 +19,13 @@ var GetOffering = func(w http.ResponseWriter, r *http.Request) {
 	offeringID := mux.Vars(r)["offering_id"]
 
 	// load context user info
-	_, ctxOrganisationUUID := auth.GetContextValues(r)
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		cigExchange.RespondWithError(w, 401, err)
+		return
+	}
 
-	if organisationID != ctxOrganisationUUID {
+	if organisationID != loggedInUser.OrganisationUUID {
 		cigExchange.RespondWithError(w, 401, fmt.Errorf("No access rights for the organisation"))
 		return
 	}
@@ -48,16 +52,20 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 	organisationID := mux.Vars(r)["organisation_id"]
 
 	// load context user info
-	_, ctxOrganisationUUID := auth.GetContextValues(r)
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		cigExchange.RespondWithError(w, 401, err)
+		return
+	}
 
-	if organisationID != ctxOrganisationUUID {
+	if organisationID != loggedInUser.OrganisationUUID {
 		cigExchange.RespondWithError(w, 401, fmt.Errorf("No access rights for the organisation"))
 		return
 	}
 
 	offering := &models.Offering{}
 	// decode offering object from request body
-	err := json.NewDecoder(r.Body).Decode(offering)
+	err = json.NewDecoder(r.Body).Decode(offering)
 	if err != nil {
 		cigExchange.RespondWithError(w, 422, fmt.Errorf("Invalid request"))
 		return
@@ -85,16 +93,20 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	offeringID := mux.Vars(r)["offering_id"]
 
 	// load context user info
-	_, ctxOrganisationUUID := auth.GetContextValues(r)
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		cigExchange.RespondWithError(w, 401, err)
+		return
+	}
 
-	if organisationID != ctxOrganisationUUID {
+	if organisationID != loggedInUser.OrganisationUUID {
 		cigExchange.RespondWithError(w, 401, fmt.Errorf("No access rights for the organisation"))
 		return
 	}
 
 	offering := &models.Offering{}
 	// decode offering object from request body
-	err := json.NewDecoder(r.Body).Decode(offering)
+	err = json.NewDecoder(r.Body).Decode(offering)
 	if err != nil {
 		cigExchange.RespondWithError(w, 422, fmt.Errorf("Invalid request"))
 		return
@@ -125,9 +137,13 @@ var DeleteOffering = func(w http.ResponseWriter, r *http.Request) {
 	offeringID := mux.Vars(r)["offering_id"]
 
 	// load context user info
-	_, ctxOrganisationUUID := auth.GetContextValues(r)
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		cigExchange.RespondWithError(w, 401, err)
+		return
+	}
 
-	if organisationID != ctxOrganisationUUID {
+	if organisationID != loggedInUser.OrganisationUUID {
 		cigExchange.RespondWithError(w, 401, fmt.Errorf("No access rights for the organisation"))
 		return
 	}
@@ -160,9 +176,13 @@ var GetOfferings = func(w http.ResponseWriter, r *http.Request) {
 	organisationID := mux.Vars(r)["organisation_id"]
 
 	// load context user info
-	_, ctxOrganisationUUID := auth.GetContextValues(r)
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		cigExchange.RespondWithError(w, 401, err)
+		return
+	}
 
-	if organisationID != ctxOrganisationUUID {
+	if organisationID != loggedInUser.OrganisationUUID {
 		cigExchange.RespondWithError(w, 401, fmt.Errorf("No access rights for the organisation"))
 		return
 	}
