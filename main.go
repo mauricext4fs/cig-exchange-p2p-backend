@@ -28,8 +28,10 @@ func main() {
 	router := mux.NewRouter()
 
 	// List of endpoints that doesn't require auth
-	skipJWT := []string{"ping"}
-	userAPI := auth.NewUserAPI(auth.PlatformP2P, baseURI, skipJWT)
+	skipJWT := []string{baseURI + "ping"}
+	userAPI := auth.UserAPI{
+		SkipJWT: skipJWT,
+	}
 
 	router.HandleFunc(baseURI+"ping", controllers.Ping).Methods("GET")
 	router.HandleFunc(baseURI+"organisations/{organisation_id}/offerings", controllers.CreateOffering).Methods("POST")
