@@ -38,6 +38,7 @@ func main() {
 	// trading
 	skipJWT = append(skipJWT, tradingBaseURI+"ping")
 	skipJWT = append(skipJWT, tradingBaseURI+"offerings")
+	skipJWT = append(skipJWT, tradingBaseURI+"contact_us")
 
 	userAPI := auth.UserAPI{
 		SkipJWT: skipJWT,
@@ -55,6 +56,7 @@ func main() {
 	// trading
 	router.HandleFunc(tradingBaseURI+"ping", controllers.Ping).Methods("GET")
 	router.HandleFunc(tradingBaseURI+"offerings", controllers.GetAllOfferings).Methods("GET")
+	router.HandleFunc(tradingBaseURI+"contact_us", controllers.SendContactUsEmail).Methods("POST")
 
 	// attach JWT auth middleware
 	router.Use(userAPI.JwtAuthenticationHandler)
