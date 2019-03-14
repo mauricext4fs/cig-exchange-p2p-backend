@@ -3,15 +3,13 @@ package main
 import (
 	"cig-exchange-libs/auth"
 	"cig-exchange-p2p-backend/controllers"
-	"net/http"
-
-	"github.com/joho/godotenv"
-
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -21,24 +19,42 @@ func main() {
 		fmt.Print(e)
 	}
 
-	baseURI := os.Getenv("P2P_BACKEND_BASE_URI")
-	baseURI = strings.Replace(baseURI, "\"", "", -1)
-	fmt.Println("Base URI set to " + baseURI)
+	p2pBaseURI := os.Getenv("P2P_BACKEND_BASE_URI")
+	p2pBaseURI = strings.Replace(p2pBaseURI, "\"", "", -1)
+	fmt.Println("p2p base URI set to " + p2pBaseURI)
+
+	tradingBaseURI := os.Getenv("HOMEPAGE_BACKEND_BASE_URI")
+	tradingBaseURI = strings.Replace(tradingBaseURI, "\"", "", -1)
+	fmt.Println("trading base URI set to " + tradingBaseURI)
 
 	router := mux.NewRouter()
 
-	// List of endpoints that doesn't require auth
-	skipJWT := []string{baseURI + "ping"}
+	// fill list of endpoints that doesn't require auth for both platforms
+	skipJWT := make([]string, 0)
+
+	// p2p
+	skipJWT = append(skipJWT, p2pBaseURI+"ping")
+
+	// trading
+	skipJWT = append(skipJWT, tradingBaseURI+"ping")
+	skipJWT = append(skipJWT, tradingBaseURI+"offerings")
+
 	userAPI := auth.UserAPI{
 		SkipJWT: skipJWT,
 	}
 
-	router.HandleFunc(baseURI+"ping", controllers.Ping).Methods("GET")
-	router.HandleFunc(baseURI+"organisations/{organisation_id}/offerings", controllers.CreateOffering).Methods("POST")
-	router.HandleFunc(baseURI+"organisations/{organisation_id}/offerings", controllers.GetOfferings).Methods("GET")
-	router.HandleFunc(baseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.GetOffering).Methods("GET")
-	router.HandleFunc(baseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
-	router.HandleFunc(baseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
+	// register handlers for both platforms
+	// p2p
+	router.HandleFunc(p2pBaseURI+"ping", controllers.Ping).Methods("GET")
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings", controllers.CreateOffering).Methods("POST")
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings", controllers.GetOfferings).Methods("GET")
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.GetOffering).Methods("GET")
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
+
+	// trading
+	router.HandleFunc(tradingBaseURI+"ping", controllers.Ping).Methods("GET")
+	router.HandleFunc(tradingBaseURI+"offerings", controllers.GetAllOfferings).Methods("GET")
 
 	// attach JWT auth middleware
 	router.Use(userAPI.JwtAuthenticationHandler)
@@ -46,9 +62,8 @@ func main() {
 	//router.NotFoundHandler = app.NotFoundHandler
 
 	port := os.Getenv("DOCKER_LISTEN_DEFAULT_PORT")
-	//port := "80"
 
-	fmt.Println(port)
+	fmt.Println("Server listening on port: " + port)
 
 	err := http.ListenAndServe(":"+port, router) //Launch the app, visit localhost:8000/api
 	if err != nil {
