@@ -1,10 +1,94 @@
 FORMAT: 1A
 
-# CIG-Exchange p2p API
-This is a **API Blueprint** file that describes **CIG-Exchange p2p API**.
+# CIG-Exchange API
+This is a **API Blueprint** file that describes **CIG-Exchange API**.
 
 
-# Group Ping
+# Group Trading/Ping
+
+## invest/api/ping [/invest/api/ping]
+
+### Ping test [GET]
+Execute an api ping test.
++ Response 200 (application/json)
+    + Attributes (Ping Response)
+
+
+# Group Trading/Contact Us
+
+## invest/api/contact_us [/invest/api/contact_us]
+
+### Contact Us [POST]
+Send contact us email message.
+
++ Request (application/json)
+    + Attributes (ContactUs Request)
+
++ Response 204
+
+
+# Group Trading/Offerings
+
+## invest/api/offerings [/invest/api/offerings]
+
+### Offerings [GET]
+Get all offerings. This call doesn't filter offerings and doesn't require JWT.
+
++ Response 200 (application/json)
+    + Attributes (array[Trading Offering Response])
+
+
+# Group Trading/Users
+
+## invest/api/users/signup [/invest/api/users/signup]
+
+### Signup [POST]
+Create a new account.
+
++ Request (application/json)
+    + Attributes (User Request)
+
++ Response 200 (application/json)
+    + Attributes (User Response)
+
+## invest/api/users/signin [/invest/api/users/signin]
+
+### Signin [POST]
+Login to existing account.
+Either email or mobile should be specified.
+
++ Request (application/json)
+    + Attributes (User Signin Request)
+
++ Response 200 (application/json)
+    + Attributes (User Response)
+
+## invest/api/users/send_otp [/invest/api/users/send_otp]
+
+### Send OTP [POST]
+Send one time password.
+Supported types are "email" and "phone"
+
++ Request (application/json)
+    + Attributes (OTP Send Request)
+
++ Response 204
+
+## invest/api/users/verify_otp [/invest/api/users/verify_otp]
+
+### Verify OTP [POST]
+Verify one time password.
+Supported types are "email" and "phone".
+On success, jwt is returned.
+
++ Request (application/json)
+    + Attributes (OTP Verify Request)
+
++ Response 200 (application/json)
+    + Attributes (OTP Response)
+
+
+# Group P2P/Ping
 
 ## p2p/api/ping [/p2p/api/ping]
 
@@ -14,16 +98,16 @@ Execute an api ping test.
     + Attributes (Ping Response)
 
 
-# Group Offerings
+# Group P2P/Offerings
 
-## p2p/api/organisations/{organisation_id}/offerings [/p2p/api/organisations/{organisation_id}/offerings]
+## p2p/api/organisations/{organisation}/offerings [/p2p/api/organisations/{organisation}/offerings]
 
 ### Create offering [POST]
 Creates a new Offering object.
 Offering 'id' is ignored in request and will be assigned in response.
 
 + Parameters
-    + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
 
 + Request (application/json)
     + Attributes (Offering Request)
@@ -35,19 +119,19 @@ Offering 'id' is ignored in request and will be assigned in response.
 Returns all Offerings available on the server.
 
 + Parameters
-    + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
 
 + Response 200 (application/json)
     + Attributes (array[Offering Response])
 
-## p2p/api/organisations/{organisation_id}/offerings/{offering_id} [/p2p/api/organisations/{organisation_id}/offerings/{offering_id}]
+## p2p/api/organisations/{organisation}/offerings/{offering} [/p2p/api/organisations/{organisation}/offerings/{offering}]
 
 ### Retrieve offering [GET]
 Returns a specific Offering object.
 
 + Parameters
-    + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
-    + `offering_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + offering: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
 
 + Response 200 (application/json)
     + Attributes (Offering Response)
@@ -57,8 +141,8 @@ Updates a specific Offering object.
 Fields that are present in json will be updated, even when they are empty.
 
 + Parameters
-    + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
-    + `offering_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + offering: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
 
 + Request (application/json)
     + Attributes (Offering Request)
@@ -70,10 +154,11 @@ Fields that are present in json will be updated, even when they are empty.
 Deletes a specific Offering object.
 
 + Parameters
-    + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
-    + `offering_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + offering: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
 
 + Response 204
+
 
 
 ## Data Structures
@@ -82,6 +167,28 @@ Deletes a specific Offering object.
 + `message`: `Pong!` (string, required) - ping response message
 + `status`: `true` (boolean, required) - ping response status
 
+### ContactUs Request
++ `name`: `Dredd Test` (string, required) - name
++ `email`: `email` (string, required) - email
++ `message`: `This is a dredd test generated email` (string, required) - message
+
+### Trading Offering Response
++ `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - offering UUID
++ `title`: `title` (string, required) - offering title
++ `type`: `type1, type2` (array[string], required) - offering types array
++ `description`: `description` (string, required) - offering description
++ `rating`: `rating` (string, required) - offering rating
++ `amount`: `200.98` (number, required) - offering amount
++ `remaining`: `100.66` (number, required) - offering remaining
++ `interest`: `10.5` (number, required) - offering interest
++ `period`: `300` (number, required) - offering period
++ `is_visible`: `true` (boolean, required) - offering visibility flag
++ `origin`: `origin` (string, required) - offering origin
++ `organisation`: `organisation` (string, required) - offering organisation name
++ `organisation_website`: `website` (string, required) - offering website
++ `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
++ `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering creation timestamp
++ `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
 
 ### Offering Request
 + `title`: `title` (string) - offering title
@@ -111,3 +218,33 @@ Deletes a specific Offering object.
 + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
 + `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering creation timestamp
 + `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
+
+### User Request
++ `name`: `First Name` (string, required) - user first name
++ `lastname`: `Last Name` (string, required) - user last name
++ `sex`: `male` (string, required) - user sex
++ `email`: `dev+test@cig-exchange.ch` (string, required) - user email
++ `phone_country_code`: `+1` (string, required) - user mobile number code
++ `phone_number`: `1111111111` (string, required) - user mobile number
++ `reference_key`: `credit_24_gate` (string) - organisation reference key, required for 'p2p' platform
++ `platform`: `trading` (string, required) - platform to create account on, supported values are 'p2p' and 'trading'
+
+### User Signin Request
++ `email`: `dev+test@cig-exchange.ch` (string) - user email
++ `phone_country_code`: `+1` (string) - user mobile number code
++ `phone_number`: `1111111111` (string) - user mobile number
+
+### User Response
++ `uuid`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
+
+### OTP Send Request
++ `uuid`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
++ `type`: `email` (string, required) - otp type, supported values are 'email' and 'phone'
+
+### OTP Verify Request
++ `uuid`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
++ `type`: `email` (string, required) - otp type, supported values are 'email' and 'phone'
++ `code`: `123456` (string, required) - otp code
+
+### OTP Response
++ `jwt`: `1234567890` (string, required) - jwt for futher auth
