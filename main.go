@@ -56,6 +56,8 @@ func main() {
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.GetOffering).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users", controllers.GetOrganisationUsers).Methods("GET")
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users/{user_id}", controllers.DeleteOrganisationUser).Methods("DELETE")
 
 	// trading
 	router.HandleFunc(tradingBaseURI+"ping", controllers.Ping).Methods("GET")
