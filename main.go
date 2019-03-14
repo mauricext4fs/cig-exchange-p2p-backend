@@ -37,6 +37,10 @@ func main() {
 
 	// trading
 	skipJWT = append(skipJWT, tradingBaseURI+"ping")
+	skipJWT = append(skipJWT, tradingBaseURI+"users/signup")
+	skipJWT = append(skipJWT, tradingBaseURI+"users/signin")
+	skipJWT = append(skipJWT, tradingBaseURI+"users/send_otp")
+	skipJWT = append(skipJWT, tradingBaseURI+"users/verify_otp")
 	skipJWT = append(skipJWT, tradingBaseURI+"offerings")
 	skipJWT = append(skipJWT, tradingBaseURI+"contact_us")
 
@@ -55,6 +59,10 @@ func main() {
 
 	// trading
 	router.HandleFunc(tradingBaseURI+"ping", controllers.Ping).Methods("GET")
+	router.HandleFunc(tradingBaseURI+"users/signup", userAPI.CreateUserHandler).Methods("POST")
+	router.HandleFunc(tradingBaseURI+"users/signin", userAPI.GetUserHandler).Methods("POST")
+	router.HandleFunc(tradingBaseURI+"users/send_otp", userAPI.SendCodeHandler).Methods("POST")
+	router.HandleFunc(tradingBaseURI+"users/verify_otp", userAPI.VerifyCodeHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"offerings", controllers.GetAllOfferings).Methods("GET")
 	router.HandleFunc(tradingBaseURI+"contact_us", controllers.SendContactUsEmail).Methods("POST")
 
