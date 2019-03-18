@@ -43,6 +43,13 @@ func main() {
 	err := dbClient.Where(&models.User{Name: dredd}).Find(&usersDelete).Error
 	if err == nil {
 		for _, u := range usersDelete {
+			orgUsersDelete := make([]models.OrganisationUser, 0)
+			err = dbClient.Where(&models.OrganisationUser{UserID: u.ID}).Find(&orgUsersDelete).Error
+			if err == nil {
+				for _, ou := range orgUsersDelete {
+					dbClient.Delete(&ou)
+				}
+			}
 			dbClient.Delete(&u)
 		}
 	}
