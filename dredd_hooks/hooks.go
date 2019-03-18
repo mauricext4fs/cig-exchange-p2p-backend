@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"cig-exchange-libs"
+	cigExchange "cig-exchange-libs"
 
 	"github.com/lib/pq"
 	"github.com/snikch/goodman/hooks"
@@ -94,7 +94,7 @@ func main() {
 		t.Request.Headers["Authorization"] = fmt.Sprintf("Bearer %v", userJWT)
 	})
 
-	h.After("Offerings > invest/api/offerings > Offerings", func(t *trans.Transaction) {
+	h.After("Trading/Offerings > invest/api/offerings > Offerings", func(t *trans.Transaction) {
 
 		// happens when api is down
 		if t.Real == nil {
@@ -119,7 +119,7 @@ func main() {
 		t.Fail = "Pre-created offering is missing"
 	})
 
-	h.Before("Users > invest/api/users/signup > Signup", func(t *trans.Transaction) {
+	h.Before("Trading/Users > invest/api/users/signup > Signup", func(t *trans.Transaction) {
 
 		if t.Request == nil {
 			return
@@ -133,7 +133,7 @@ func main() {
 		setBodyValue(&t.Request.Body, "name", dredd)
 	})
 
-	h.After("Users > invest/api/users/signin > Signin", func(t *trans.Transaction) {
+	h.After("Trading/Users > invest/api/users/signin > Signin", func(t *trans.Transaction) {
 
 		// happens when api is down
 		if t.Real == nil {
@@ -147,7 +147,7 @@ func main() {
 		}
 	})
 
-	h.Before("Users > invest/api/users/send_otp > Send OTP", func(t *trans.Transaction) {
+	h.Before("Trading/Users > invest/api/users/send_otp > Send OTP", func(t *trans.Transaction) {
 
 		if t.Request == nil {
 			return
@@ -160,7 +160,23 @@ func main() {
 		setBodyValue(&t.Request.Body, "uuid", userUUID)
 	})
 
-	h.Before("Users > invest/api/users/verify_otp > Verify OTP", func(t *trans.Transaction) {
+	h.BeforeValidation("Trading/Users > invest/api/users/send_otp > Send OTP", func(t *trans.Transaction) {
+
+		// happens when api is down
+		if t.Real == nil {
+			return
+		}
+
+		if t.Real.StatusCode != 200 {
+			return
+		}
+
+		// ignore dev env status code return
+		t.Real.StatusCode = 204
+		t.Real.Body = ""
+	})
+
+	h.Before("Trading/Users > invest/api/users/verify_otp > Verify OTP", func(t *trans.Transaction) {
 
 		if t.Request == nil {
 			return
@@ -181,7 +197,7 @@ func main() {
 		setBodyValue(&t.Request.Body, "code", redisCmd.Val())
 	})
 
-	h.After("Users > invest/api/users/verify_otp > Verify OTP", func(t *trans.Transaction) {
+	h.After("Trading/Users > invest/api/users/verify_otp > Verify OTP", func(t *trans.Transaction) {
 
 		// happens when api is down
 		if t.Real == nil {
@@ -196,7 +212,7 @@ func main() {
 	})
 
 	// update URI everywhere to point to a created record
-	h.Before("Offerings > p2p/api/organisations/{organisation}/offerings > Create offering", func(t *trans.Transaction) {
+	h.Before("P2P/Offerings > p2p/api/organisations/{organisation}/offerings > Create offering", func(t *trans.Transaction) {
 		if t.Request == nil {
 			return
 		}
@@ -211,7 +227,7 @@ func main() {
 		setBodyValue(&t.Request.Body, "organisation_id", orgUUID)
 	})
 
-	h.After("Offerings > p2p/api/organisations/{organisation}/offerings > Create offering", func(t *trans.Transaction) {
+	h.After("P2P/Offerings > p2p/api/organisations/{organisation}/offerings > Create offering", func(t *trans.Transaction) {
 		// happens when api is down
 		if t.Real == nil {
 			return
@@ -224,7 +240,7 @@ func main() {
 		}
 	})
 
-	h.Before("Offerings > p2p/api/organisations/{organisation}/offerings > Retrieve all offerings", func(t *trans.Transaction) {
+	h.Before("P2P/Offerings > p2p/api/organisations/{organisation}/offerings > Retrieve all offerings", func(t *trans.Transaction) {
 		if t.Request == nil {
 			return
 		}
@@ -237,7 +253,7 @@ func main() {
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/offerings"
 	})
 
-	h.After("Offerings > p2p/api/organisations/{organisation}/offerings > Retrieve all offerings", func(t *trans.Transaction) {
+	h.After("P2P/Offerings > p2p/api/organisations/{organisation}/offerings > Retrieve all offerings", func(t *trans.Transaction) {
 		// happens when api is down
 		if t.Real == nil {
 			return
@@ -273,7 +289,7 @@ func main() {
 		t.Fail = "Pre-created offering is missing"
 	})
 
-	h.Before("Offerings > p2p/api/organisations/{organisation}/offerings/{offering} > Retrieve offering", func(t *trans.Transaction) {
+	h.Before("P2P/Offerings > p2p/api/organisations/{organisation}/offerings/{offering} > Retrieve offering", func(t *trans.Transaction) {
 		if t.Request == nil {
 			return
 		}
@@ -290,7 +306,7 @@ func main() {
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/offerings/" + createdUUID
 	})
 
-	h.Before("Offerings > p2p/api/organisations/{organisation}/offerings/{offering} > Update offering", func(t *trans.Transaction) {
+	h.Before("P2P/Offerings > p2p/api/organisations/{organisation}/offerings/{offering} > Update offering", func(t *trans.Transaction) {
 		if t.Request == nil {
 			return
 		}
@@ -309,7 +325,7 @@ func main() {
 		setBodyValue(&t.Request.Body, "organisation_id", orgUUID)
 	})
 
-	h.Before("Offerings > p2p/api/organisations/{organisation}/offerings/{offering} > Delete offering", func(t *trans.Transaction) {
+	h.Before("P2P/Offerings > p2p/api/organisations/{organisation}/offerings/{offering} > Delete offering", func(t *trans.Transaction) {
 		if t.Request == nil {
 			return
 		}
