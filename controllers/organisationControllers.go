@@ -281,7 +281,7 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 
 	// find user
 	_, apiError := models.GetUser(userID)
-	if err != nil {
+	if apiError != nil {
 		fmt.Println(apiError.ToString())
 		cigExchange.RespondWithAPIError(w, apiError)
 		return
