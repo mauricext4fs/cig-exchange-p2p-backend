@@ -349,6 +349,36 @@ func main() {
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/offerings/" + createdUUID
 	})
 
+	h.Before("P2P/OrganisationUsers > p2p/api/organisations/{organisation}/users > Retrieve organisation users", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Organisation UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/users"
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/users"
+	})
+
+	h.Before("P2P/OrganisationUsers > p2p/api/organisations/{organisation}/users/{user} > Delete organisation user", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Organisation UUID missing"
+			return
+		}
+		if len(userUUID) == 0 {
+			t.Fail = "User UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/users/" + userUUID
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/users/" + userUUID
+	})
+
 	server.Serve()
 	defer server.Listener.Close()
 }

@@ -160,6 +160,30 @@ Deletes a specific Offering object.
 + Response 204
 
 
+# Group P2P/OrganisationUsers
+
+## p2p/api/organisations/{organisation}/users [/p2p/api/organisations/{organisation}/users]
+
+### Retrieve organisation users [GET]
+Returns all users belonging to sepcified organisation.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+
++ Response 200 (application/json)
+    + Attributes (array[OrganisationUser Response])
+
+## p2p/api/organisations/{organisation}/users/{user} [/p2p/api/organisations/{organisation}/users/{user}]
+
+### Delete organisation user [DELETE]
+Deletes a specific organisation user.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + user: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the user to delete from the organisation
+
++ Response 204
+
 
 ## Data Structures
 
@@ -248,3 +272,9 @@ Deletes a specific Offering object.
 
 ### OTP Response
 + `jwt`: `1234567890` (string, required) - jwt for futher auth
+
+### OrganisationUser Response
++ `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
++ `name`: `First Name` (string, required) - user first name
++ `last_name`: `Last Name` (string, required) - user last name
++ `sex`: `male` (string, required) - user sex
