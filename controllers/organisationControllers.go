@@ -288,10 +288,18 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	}
 	// TODO: rewoke user JWT token
 
-	// delete OrganizationUser
+	// fill OrganizationUser with user id and organisation id
 	orgUser := models.OrganisationUser{
 		UserID:         userID,
 		OrganisationID: organisationID,
+	}
+
+	// find OrganizationUser
+	apiError = orgUser.Find()
+	if apiError != nil {
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
 	}
 
 	// delete OrganisationUser
