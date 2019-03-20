@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"cig-exchange-libs"
+	cigExchange "cig-exchange-libs"
 	"cig-exchange-libs/auth"
 	models "cig-exchange-libs/models"
 	"encoding/json"
@@ -139,12 +139,16 @@ var DeleteOffering = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		cigExchange.RespondWithError(w, 401, err)
+		apiError := cigExchange.NewRoutingError(err)
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
 		return
 	}
 
 	if organisationID != loggedInUser.OrganisationUUID {
-		cigExchange.RespondWithError(w, 401, fmt.Errorf("No access rights for the organisation"))
+		apiError := cigExchange.NewAccessRightsError("No access rights for the organisation")
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
 		return
 	}
 
@@ -156,14 +160,17 @@ var DeleteOffering = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if offering.OrganisationID != organisationID {
-		cigExchange.RespondWithError(w, 401, fmt.Errorf("No access rights for the organisation"))
+		apiError := cigExchange.NewAccessRightsError("Offering doesn't belong to organisation")
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
 		return
 	}
 
 	// delete offering
-	err = offering.Delete()
-	if err != nil {
-		cigExchange.RespondWithError(w, 500, err)
+	apiError := offering.Delete()
+	if apiError != nil {
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
 		return
 	}
 	w.WriteHeader(204)
