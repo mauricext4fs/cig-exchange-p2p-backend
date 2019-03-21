@@ -218,6 +218,20 @@ func main() {
 		}
 	})
 
+	h.Before("Trading/Users > invest/api/users/switch/{organisation} > Switch Organisation", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Organisation UUID missing"
+			return
+		}
+
+		t.Request.URI = "/invest/api/users/switch/" + orgUUID
+		t.FullPath = "/invest/api/users/switch/" + orgUUID
+	})
+
 	// update URI everywhere to point to a created record
 	h.Before("P2P/Offerings > p2p/api/organisations/{organisation}/offerings > Create offering", func(t *trans.Transaction) {
 		if t.Request == nil {
