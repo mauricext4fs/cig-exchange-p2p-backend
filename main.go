@@ -52,6 +52,7 @@ func main() {
 	// register handlers for both platforms
 	// p2p
 	router.HandleFunc(p2pBaseURI+"ping", controllers.Ping).Methods("GET")
+	router.HandleFunc(p2pBaseURI+"organisations", controllers.CreateOrganisation).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.GetOrganisation).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.UpdateOrganisation).Methods("PATCH")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.DeleteOrganisation).Methods("DELETE")

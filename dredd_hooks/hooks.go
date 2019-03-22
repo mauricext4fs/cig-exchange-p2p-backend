@@ -13,6 +13,7 @@ import (
 )
 
 const dredd = "dredd"
+const dredd2 = "dredd2"
 const dreddP2P = "dredd_p2p"
 
 func main() {
@@ -57,6 +58,15 @@ func main() {
 	// delete 'dredd' organisations if it exists (reference key = 'dredd')
 	orgsDelete := make([]models.Organisation, 0)
 	err = dbClient.Where(&models.Organisation{ReferenceKey: dredd}).Find(&orgsDelete).Error
+	if err == nil {
+		for _, o := range orgsDelete {
+			dbClient.Delete(&o)
+		}
+	}
+
+	// delete 'dredd2' organisations if it exists (reference key = 'dredd2')
+	orgsDelete = make([]models.Organisation, 0)
+	err = dbClient.Where(&models.Organisation{ReferenceKey: dredd2}).Find(&orgsDelete).Error
 	if err == nil {
 		for _, o := range orgsDelete {
 			dbClient.Delete(&o)
@@ -230,6 +240,57 @@ func main() {
 
 		t.Request.URI = "/invest/api/users/switch/" + orgUUID
 		t.FullPath = "/invest/api/users/switch/" + orgUUID
+	})
+
+	h.Before("P2P/Organisation > p2p/api/organisations > Create organisation", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+
+		setBodyValue(&t.Request.Body, "reference_key", dredd2)
+		setBodyValue(&t.Request.Body, "name", dredd2)
+	})
+
+	h.Before("P2P/Organisation > p2p/api/organisations/{organisation} > Retrieve organisation", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Created organisation UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID
+		t.FullPath = "/p2p/api/organisations/" + orgUUID
+	})
+
+	h.Before("P2P/Organisation > p2p/api/organisations/{organisation} > Update organisation", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Created organisation UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID
+		t.FullPath = "/p2p/api/organisations/" + orgUUID
+
+		setBodyValue(&t.Request.Body, "name", dredd+cigExchange.RandCode(4))
+	})
+
+	h.Before("P2P/Organisation > p2p/api/organisations/{organisation} > Delete organisation", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Created organisation UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID
+		t.FullPath = "/p2p/api/organisations/" + orgUUID
 	})
 
 	// update URI everywhere to point to a created record
