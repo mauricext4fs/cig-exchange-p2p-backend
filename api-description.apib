@@ -99,6 +99,22 @@ On success, jwt is returned.
 + Response 200 (application/json)
     + Attributes (OTP Response)
 
+# Group Trading/Organisations
+
+## invest/api/organisations/signup [/invest/api/organisations/signup]
+
+### Create organisation [POST]
+Creates a new Organisation object and User object.
+User will be admin in created organisation.
+On success, user id is returned.
+
++ Request (application/json)
+    + Attributes (Create Organisation Request)
+
++ Response 200 (application/json)
+    + Attributes (User Response)
+
+
 # Group P2P/Ping
 
 ## p2p/api/ping [/p2p/api/ping]
@@ -300,6 +316,16 @@ Deletes a specific Organisation object.
 + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
 + `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering creation timestamp
 + `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
+
+### Create Organisation Request
++ `name`: `First Name` (string, required) - user first name
++ `lastname`: `Last Name` (string, required) - user last name
++ `sex`: `male` (string, required) - user sex
++ `email`: `dev+test+org@cig-exchange.ch` (string, required) - user email
++ `phone_country_code`: `+1` (string, required) - user mobile number code
++ `phone_number`: `1111111111` (string, required) - user mobile number
++ `organisation_name`: `organisation_name` (string) - organisation name
++ `reference_key`: `reference_key` (string) - organisation reference key
 
 ### Organisation Request
 + `type`: `type` (string) - organisation type
