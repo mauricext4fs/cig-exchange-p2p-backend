@@ -196,6 +196,53 @@ Deletes a specific organisation user.
 + Response 204
 
 
+# Group P2P/Organisation
+
+## p2p/api/organisations [/p2p/api/organisations]
+
+### Create organisation [POST]
+Creates a new Organisation object.
+Organisation 'id' is ignored in request and will be assigned in response.
+
++ Request (application/json)
+    + Attributes (Organisation Request)
+
++ Response 200 (application/json)
+    + Attributes (Organisation Response)
+
+## p2p/api/organisations/{organisation} [/p2p/api/organisations/{organisation}]
+
+### Retrieve organisation [GET]
+Returns a specific Organisation object.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+
++ Response 200 (application/json)
+    + Attributes (Organisation Response)
+
+### Update organisation [PATCH]
+Updates a specific Organisation object.
+Fields that are present in json will be updated, even when they are empty.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+
++ Request (application/json)
+    + Attributes (Organisation Request)
+
++ Response 200 (application/json)
+    + Attributes (Organisation Response)
+
+### Delete organisation [DELETE]
+Deletes a specific Organisation object.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+
++ Response 204
+
+
 ## Data Structures
 
 ### Ping Response
@@ -253,6 +300,23 @@ Deletes a specific organisation user.
 + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
 + `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering creation timestamp
 + `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
+
+### Organisation Request
++ `type`: `type` (string) - organisation type
++ `name`: `name` (string) - organisation name
++ `website`: `website` (string) - organisation website
++ `reference_key`: `reference_key` (string) - organisation reference key
++ `offering_rating_description`: `offering_rating_description` (string) - organisation offering rating description
+
+### Organisation Response
++ `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - organisation UUID
++ `type`: `type` (string) - organisation type
++ `name`: `name` (string) - organisation name
++ `website`: `website` (string) - organisation website
++ `reference_key`: `reference_key` (string) - organisation reference key
++ `offering_rating_description`: `offering_rating_description` (string) - organisation offering rating description
++ `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - organisation creation timestamp
++ `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - organisation updated timestamp
 
 ### User Request
 + `name`: `First Name` (string, required) - user first name

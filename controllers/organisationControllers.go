@@ -52,6 +52,54 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	cigExchange.Respond(w, organisation)
 }
 
+// CreateOrganisation handles POST organisations endpoint
+var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
+
+	// check jwt
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		apiError := cigExchange.NewRoutingError(err)
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	organisation := &models.Organisation{}
+	// decode organisation object from request body
+	err = json.NewDecoder(r.Body).Decode(organisation)
+	if err != nil {
+		apiError := cigExchange.NewJSONDecodingError(err)
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	// insert organisation into db
+	apiError := organisation.Create()
+	if apiError != nil {
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	orgUser := &models.OrganisationUser{
+		UserID:           loggedInUser.UserUUID,
+		OrganisationID:   organisation.ID,
+		OrganisationRole: "admin",
+		IsHome:           false,
+	}
+
+	// insert organisation user into db
+	apiError = orgUser.Create()
+	if apiError != nil {
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	cigExchange.Respond(w, organisation)
+}
+
 // UpdateOrganisation handles PATCH organisations/{organisation_id} endpoint
 var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
