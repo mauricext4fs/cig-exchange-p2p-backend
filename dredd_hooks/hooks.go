@@ -14,6 +14,7 @@ import (
 
 const dredd = "dredd"
 const dredd2 = "dredd2"
+const dredd3 = "dredd3"
 const dreddP2P = "dredd_p2p"
 
 func main() {
@@ -33,43 +34,39 @@ func main() {
 	createdUUID := ""
 
 	// prepare the database:
-	// 1. delete 'dredd' users if it exists (first name  = 'dredd')
-	// 2. delete 'dredd' organisations if it exists (reference key = 'dredd')
+	// 1. delete 'dredd' users if it exists (first name  = 'dredd', 'dredd2', 'dredd3')
+	// 2. delete 'dredd' organisations if it exists (reference key = 'dredd', 'dredd2', 'dredd3')
 	// 3. create 'dredd' organisation (user will be registered with it)
 	// 4. create some offerings belonging to 'dredd' organization
 	// 5. verify that created offerings are present in 'invest/offerings' api call
 
-	// delete 'dredd' users if it exists (first name  = 'dredd')
-	usersDelete := make([]models.User, 0)
-	err := dbClient.Where(&models.User{Name: dredd}).Find(&usersDelete).Error
-	if err == nil {
-		for _, u := range usersDelete {
-			orgUsersDelete := make([]models.OrganisationUser, 0)
-			err = dbClient.Where(&models.OrganisationUser{UserID: u.ID}).Find(&orgUsersDelete).Error
-			if err == nil {
-				for _, ou := range orgUsersDelete {
-					dbClient.Delete(&ou)
+	// delete 'dredd' users if it exists (first name  = 'dredd', 'dredd2', 'dredd3')
+	dreddUsers := [3]string{dredd, dredd2, dredd3}
+	for _, name := range dreddUsers {
+		usersDelete := make([]models.User, 0)
+		err := dbClient.Where(&models.User{Name: name}).Find(&usersDelete).Error
+		if err == nil {
+			for _, u := range usersDelete {
+				orgUsersDelete := make([]models.OrganisationUser, 0)
+				err = dbClient.Where(&models.OrganisationUser{UserID: u.ID}).Find(&orgUsersDelete).Error
+				if err == nil {
+					for _, ou := range orgUsersDelete {
+						dbClient.Delete(&ou)
+					}
 				}
+				dbClient.Delete(&u)
 			}
-			dbClient.Delete(&u)
 		}
 	}
 
-	// delete 'dredd' organisations if it exists (reference key = 'dredd')
-	orgsDelete := make([]models.Organisation, 0)
-	err = dbClient.Where(&models.Organisation{ReferenceKey: dredd}).Find(&orgsDelete).Error
-	if err == nil {
-		for _, o := range orgsDelete {
-			dbClient.Delete(&o)
-		}
-	}
-
-	// delete 'dredd2' organisations if it exists (reference key = 'dredd2')
-	orgsDelete = make([]models.Organisation, 0)
-	err = dbClient.Where(&models.Organisation{ReferenceKey: dredd2}).Find(&orgsDelete).Error
-	if err == nil {
-		for _, o := range orgsDelete {
-			dbClient.Delete(&o)
+	// delete 'dredd' organisations if it exists (reference key = 'dredd', 'dredd2', 'dredd3')
+	for _, orgReference := range dreddUsers {
+		orgsDelete := make([]models.Organisation, 0)
+		err := dbClient.Where(&models.Organisation{ReferenceKey: orgReference}).Find(&orgsDelete).Error
+		if err == nil {
+			for _, o := range orgsDelete {
+				dbClient.Delete(&o)
+			}
 		}
 	}
 
@@ -78,7 +75,7 @@ func main() {
 		Name:         dredd,
 		ReferenceKey: dredd,
 	}
-	err = dbClient.Create(&org).Error
+	err := dbClient.Create(&org).Error
 	if err != nil {
 		fmt.Println("ERROR: prepareDatabase: create organisation:")
 		fmt.Println(err.Error())
@@ -226,6 +223,16 @@ func main() {
 			t.Fail = "Unable to save user JWT"
 			return
 		}
+	})
+
+	h.Before("Trading/Organisations > invest/api/organisations/signup > Create organisation", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+
+		setBodyValue(&t.Request.Body, "name", dredd3)
+		setBodyValue(&t.Request.Body, "organisation_name", dredd3)
+		setBodyValue(&t.Request.Body, "reference_key", dredd3)
 	})
 
 	h.Before("Trading/Users > invest/api/users/switch/{organisation} > Switch Organisation", func(t *trans.Transaction) {
