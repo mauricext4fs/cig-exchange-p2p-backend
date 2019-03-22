@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
+	"os"
 	"github.com/mattbaird/gochimp"
 )
 
@@ -34,13 +34,13 @@ var SendContactUsEmail = func(w http.ResponseWriter, r *http.Request) {
 	mandrillClient := cigExchange.GetMandrill()
 
 	recipients := []gochimp.Recipient{
-		gochimp.Recipient{Email: "info@cig-exchange.ch", Name: "CIG Exchange team", Type: "to"},
+		gochimp.Recipient{Email: os.Getenv("CONTACTUS_TARGET_EMAIL"), Name: "CIG Exchange team", Type: "to"},
 	}
 
 	message := gochimp.Message{
 		Text:      fmt.Sprintf("Name:%s\nEmail:%s\n\nMessage:\n%s", contactInfo.Name, contactInfo.Email, contactInfo.Message),
 		Subject:   "Contact Us message",
-		FromEmail: "info@cig-exchange.ch",
+		FromEmail: os.Getenv("CONTACTUS_TARGET_EMAIL"),
 		FromName:  "CIG Exchange contact us",
 		To:        recipients,
 	}
