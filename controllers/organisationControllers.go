@@ -6,6 +6,7 @@ import (
 	"cig-exchange-libs/models"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -130,9 +131,18 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// read request body
+	bytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		apiError := cigExchange.NewReadError("Failed to read request body", err)
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
 	organisation := &models.Organisation{}
 	// decode organisation object from request body
-	err = json.NewDecoder(r.Body).Decode(organisation)
+	err = json.Unmarshal(bytes, organisation)
 	if err != nil {
 		apiError := cigExchange.NewJSONDecodingError(err)
 		fmt.Println(apiError.ToString())
@@ -140,17 +150,40 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	organisationMap := make(map[string]interface{})
+	// decode map[string]interface from request body
+	err = json.Unmarshal(bytes, &organisationMap)
+	if err != nil {
+		apiError := cigExchange.NewJSONDecodingError(err)
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	// remove unknow fields from map
+	filteredOrganisationMap := cigExchange.FilterUnknownFields(&models.Organisation{}, organisationMap)
+
 	// set the organisation UUID
 	organisation.ID = organisationID
+	filteredOrganisationMap["id"] = organisationID
 
 	// update organisation
-	apiError := organisation.Update()
+	apiError := organisation.Update(filteredOrganisationMap)
 	if apiError != nil {
 		fmt.Println(apiError.ToString())
 		cigExchange.RespondWithAPIError(w, apiError)
 		return
 	}
-	cigExchange.Respond(w, organisation)
+
+	// return updated organisation
+	existingOrganisation, apiError := models.GetOrganisation(organisationID)
+	if apiError != nil {
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	cigExchange.Respond(w, existingOrganisation)
 }
 
 // DeleteOrganisation handles DELETE organisations/{organisation_id} endpoint

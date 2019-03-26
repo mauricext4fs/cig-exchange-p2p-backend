@@ -6,6 +6,7 @@ import (
 	models "cig-exchange-libs/models"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -124,11 +125,40 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// read request body
+	bytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		apiError := cigExchange.NewReadError("Failed to read request body", err)
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
 	offering := &models.Offering{}
 	// decode offering object from request body
-	err = json.NewDecoder(r.Body).Decode(offering)
+	err = json.Unmarshal(bytes, offering)
 	if err != nil {
 		apiError := cigExchange.NewJSONDecodingError(err)
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	offeringMap := make(map[string]interface{})
+	// decode map[string]interface from request body
+	err = json.Unmarshal(bytes, &offeringMap)
+	if err != nil {
+		apiError := cigExchange.NewJSONDecodingError(err)
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	// remove unknow fields from map
+	filteredOfferingMap := cigExchange.FilterUnknownFields(&models.Offering{}, offeringMap)
+
+	if len(offering.OrganisationID) == 0 {
+		apiError := cigExchange.NewInvalidFieldError("organisation_id", "Required field 'organisation_id' missing")
 		fmt.Println(apiError.ToString())
 		cigExchange.RespondWithAPIError(w, apiError)
 		return
@@ -157,15 +187,25 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	// set the offering UUID
 	offering.ID = offeringID
+	filteredOfferingMap["id"] = offeringID
 
 	// update offering
-	apiError = offering.Update()
+	apiError = offering.Update(filteredOfferingMap)
 	if apiError != nil {
 		fmt.Println(apiError.ToString())
 		cigExchange.RespondWithAPIError(w, apiError)
 		return
 	}
-	cigExchange.Respond(w, offering)
+
+	// return updated offering
+	existingOffering, apiError = models.GetOffering(offeringID)
+	if apiError != nil {
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	cigExchange.Respond(w, existingOffering)
 }
 
 // DeleteOffering handles DELETE organisations/{organisation_id}/offerings/{offering_id} endpoint
