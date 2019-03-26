@@ -235,7 +235,7 @@ func main() {
 		setBodyValue(&t.Request.Body, "reference_key", dredd3)
 	})
 
-	h.Before("Trading/Users > invest/api/users/switch/{organisation} > Switch Organisation", func(t *trans.Transaction) {
+	h.Before("P2P/Users > p2p/api/users/switch/{organisation} > Switch Organisation", func(t *trans.Transaction) {
 
 		if t.Request == nil {
 			return
@@ -245,8 +245,8 @@ func main() {
 			return
 		}
 
-		t.Request.URI = "/invest/api/users/switch/" + orgUUID
-		t.FullPath = "/invest/api/users/switch/" + orgUUID
+		t.Request.URI = "/p2p/api/users/switch/" + orgUUID
+		t.FullPath = "/p2p/api/users/switch/" + orgUUID
 	})
 
 	h.Before("P2P/Organisation > p2p/api/organisations > Create organisation", func(t *trans.Transaction) {

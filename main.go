@@ -29,29 +29,13 @@ func main() {
 
 	router := mux.NewRouter()
 
-	// fill list of endpoints that doesn't require auth for both platforms
-	skipJWT := make([]string, 0)
-
-	// p2p
-	skipJWT = append(skipJWT, p2pBaseURI+"ping")
-
-	// trading
-	skipJWT = append(skipJWT, tradingBaseURI+"ping")
-	skipJWT = append(skipJWT, tradingBaseURI+"users/signup")
-	skipJWT = append(skipJWT, tradingBaseURI+"users/signin")
-	skipJWT = append(skipJWT, tradingBaseURI+"users/send_otp")
-	skipJWT = append(skipJWT, tradingBaseURI+"users/verify_otp")
-	skipJWT = append(skipJWT, tradingBaseURI+"organisations/signup")
-	skipJWT = append(skipJWT, tradingBaseURI+"offerings")
-	skipJWT = append(skipJWT, tradingBaseURI+"contact_us")
-
 	userAPI := auth.UserAPI{
-		SkipJWT: skipJWT,
+		SkipPrefix: tradingBaseURI,
 	}
 
 	// register handlers for both platforms
 	// p2p
-	router.HandleFunc(p2pBaseURI+"ping", controllers.Ping).Methods("GET")
+	router.HandleFunc(p2pBaseURI+"users/switch/{organisation_id}", userAPI.ChangeOrganisationHandler).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations", controllers.CreateOrganisation).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.GetOrganisation).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.UpdateOrganisation).Methods("PATCH")
@@ -73,7 +57,6 @@ func main() {
 	router.HandleFunc(tradingBaseURI+"users/signin", userAPI.GetUserHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/send_otp", userAPI.SendCodeHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/verify_otp", userAPI.VerifyCodeHandler).Methods("POST")
-	router.HandleFunc(tradingBaseURI+"users/switch/{organisation_id}", userAPI.ChangeOrganisationHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"organisations/signup", userAPI.CreateOrganisationHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"offerings", controllers.GetAllOfferings).Methods("GET")
 	router.HandleFunc(tradingBaseURI+"contact_us", controllers.SendContactUsEmail).Methods("POST")
