@@ -245,7 +245,7 @@ var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// query users from db
-	users, apiError := models.GetUsersForOrganisation(organisationID)
+	users, apiError := models.GetUsersForOrganisation(organisationID, false)
 	if err != nil {
 		fmt.Println(apiError.ToString())
 		cigExchange.RespondWithAPIError(w, apiError)
