@@ -32,6 +32,7 @@ func main() {
 
 	// save created record UUID here
 	createdUUID := ""
+	invitationUUID := ""
 
 	// prepare the database:
 	// 1. delete 'dredd' users if it exists (first name  = 'dredd', 'dredd2', 'dredd3')
@@ -249,7 +250,7 @@ func main() {
 		t.FullPath = "/p2p/api/users/switch/" + orgUUID
 	})
 
-	h.Before("P2P/Organisation > p2p/api/organisations > Create organisation", func(t *trans.Transaction) {
+	h.Before("P2P/Organisations > p2p/api/organisations > Create organisation", func(t *trans.Transaction) {
 
 		if t.Request == nil {
 			return
@@ -259,7 +260,7 @@ func main() {
 		setBodyValue(&t.Request.Body, "name", dredd2)
 	})
 
-	h.Before("P2P/Organisation > p2p/api/organisations/{organisation} > Retrieve organisation", func(t *trans.Transaction) {
+	h.Before("P2P/Organisations > p2p/api/organisations/{organisation} > Retrieve organisation", func(t *trans.Transaction) {
 		if t.Request == nil {
 			return
 		}
@@ -272,7 +273,7 @@ func main() {
 		t.FullPath = "/p2p/api/organisations/" + orgUUID
 	})
 
-	h.Before("P2P/Organisation > p2p/api/organisations/{organisation} > Update organisation", func(t *trans.Transaction) {
+	h.Before("P2P/Organisations > p2p/api/organisations/{organisation} > Update organisation", func(t *trans.Transaction) {
 		if t.Request == nil {
 			return
 		}
@@ -287,7 +288,7 @@ func main() {
 		setBodyValue(&t.Request.Body, "name", dredd+cigExchange.RandCode(4))
 	})
 
-	h.Before("P2P/Organisation > p2p/api/organisations/{organisation} > Delete organisation", func(t *trans.Transaction) {
+	h.Before("P2P/Organisations > p2p/api/organisations/{organisation} > Delete organisation", func(t *trans.Transaction) {
 		if t.Request == nil {
 			return
 		}
@@ -429,6 +430,61 @@ func main() {
 
 		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/offerings/" + createdUUID
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/offerings/" + createdUUID
+	})
+
+	h.Before("P2P/Invitations > p2p/api/organisations/{organisation}/invitations > Send invitation", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+
+		setBodyValue(&t.Request.Body, "name", dredd3)
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/invitations"
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/invitations"
+	})
+
+	h.After("P2P/Invitations > p2p/api/organisations/{organisation}/invitations > Send invitation", func(t *trans.Transaction) {
+
+		// happens when api is down
+		if t.Real == nil {
+			return
+		}
+
+		invitationUUID = getBodyValue(&t.Real.Body, "uuid")
+		if len(invitationUUID) == 0 {
+			t.Fail = "Unable to save invitation UUID"
+			return
+		}
+	})
+
+	h.Before("P2P/Invitations > p2p/api/organisations/{organisation}/invitations > Retrieve invitations", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Organisation UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/invitations"
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/invitations"
+	})
+
+	h.Before("P2P/Invitations > p2p/api/organisations/{organisation}/invitations/{user} > Delete invitation", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Organisation UUID missing"
+			return
+		}
+		if len(invitationUUID) == 0 {
+			t.Fail = "Invitation UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/invitations/" + invitationUUID
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/invitations/" + invitationUUID
 	})
 
 	h.Before("P2P/OrganisationUsers > p2p/api/organisations/{organisation}/users > Retrieve organisation users", func(t *trans.Transaction) {

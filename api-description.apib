@@ -180,6 +180,44 @@ Deletes a specific Offering object.
 + Response 204
 
 
+# Group P2P/Invitations
+
+## p2p/api/organisations/{organisation}/invitations [/p2p/api/organisations/{organisation}/invitations]
+
+### Send invitation [POST]
+Creates user if not exist or invites existing user to organisation.
+Returns invited user id on success.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+
++ Request (application/json)
+    + Attributes (Invitation Request)
+
++ Response 200 (application/json)
+    + Attributes (User Response)
+
+### Retrieve invitations [GET]
+Returns all Invitations for organisation.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+
++ Response 200 (application/json)
+    + Attributes (array[OrganisationUser Response])
+
+## p2p/api/organisations/{organisation}/invitations/{user} [/p2p/api/organisations/{organisation}/invitations/{user}]
+
+### Delete invitation [DELETE]
+Deletes a specific invitation.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + user: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the user to cancel invitation
+
++ Response 204
+
+
 # Group P2P/OrganisationUsers
 
 ## p2p/api/organisations/{organisation}/users [/p2p/api/organisations/{organisation}/users]
@@ -205,7 +243,7 @@ Deletes a specific organisation user.
 + Response 204
 
 
-# Group P2P/Organisation
+# Group P2P/Organisations
 
 ## p2p/api/organisations [/p2p/api/organisations]
 
@@ -315,6 +353,14 @@ Deletes a specific Organisation object.
 + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
 + `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering creation timestamp
 + `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
+
+### Invitation Request
++ `name`: `First Name` (string, required) - user first name
++ `lastname`: `Last Name` (string, required) - user last name
++ `sex`: `male` (string, required) - user sex
++ `email`: `dev+test+org@cig-exchange.ch` (string, required) - user email
++ `phone_country_code`: `+1` (string, required) - user mobile number code
++ `phone_number`: `1111111111` (string, required) - user mobile number
 
 ### Create Organisation Request
 + `name`: `First Name` (string, required) - user first name
