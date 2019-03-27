@@ -53,6 +53,36 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	cigExchange.Respond(w, organisation)
 }
 
+// GetOrganisations handles GET organisations endpoint
+var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
+
+	// load context user info
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		apiError := cigExchange.NewRoutingError(err)
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	if len(loggedInUser.UserUUID) == 0 {
+		apiError := cigExchange.NewInvalidFieldError("user_id", "Invalid user id")
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	// query organisation from db
+	organisations, apiError := models.GetOrganisations(loggedInUser.UserUUID)
+	if apiError != nil {
+		fmt.Println(apiError.ToString())
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	cigExchange.Respond(w, organisations)
+}
+
 // CreateOrganisation handles POST organisations endpoint
 var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
