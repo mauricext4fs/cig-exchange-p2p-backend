@@ -55,6 +55,18 @@ func main() {
 						dbClient.Delete(&ou)
 					}
 				}
+
+				userContactDelete := make([]models.UserContact, 0)
+				err = dbClient.Where(&models.UserContact{UserID: u.ID}).Find(&userContactDelete).Error
+				if err == nil {
+					for _, uc := range userContactDelete {
+						dbClient.Delete(&models.Contact{ID: uc.ContactID})
+
+						dbClient.Delete(&uc)
+					}
+					dbClient.Delete(&u)
+				}
+
 				dbClient.Delete(&u)
 			}
 		}

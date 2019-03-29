@@ -40,6 +40,17 @@ Get all offerings. This call doesn't filter offerings and doesn't require JWT.
 
 # Group Trading/Users
 
+## invest/api/users/activities [/invest/api/users/activities]
+
+### Create activity [POST]
+Create a new UserActivity object.
+Api call will save request body as jsonb in 'user_activity.info' field.
+
++ Request (application/json)
+    + Attributes (Activity Request)
+
++ Response 204
+
 ## invest/api/users/signup [/invest/api/users/signup]
 
 ### Signup [POST]
@@ -117,6 +128,22 @@ On success, jwt is returned.
 
 + Response 200 (application/json)
     + Attributes (OTP Response)
+
+## p2p/api/users/{user}/activities [/p2p/api/users/{user}/activities]
+
+### Create user activity [POST]
+Create a new UserActivity object.
+Api call will save request body as jsonb in 'user_activity.info' field.
+JWT will be saved as jsonb in 'user_activity.jwt' field..
+
++ Parameters
+    + user: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - user id
+
++ Request (application/json)
+    + Attributes (Activity Request)
+
++ Response 204
+
 
 # Group P2P/Offerings
 
@@ -301,6 +328,10 @@ Deletes a specific Organisation object.
 ### Ping Response
 + `message`: `Pong!` (string, required) - ping response message
 + `status`: `true` (boolean, required) - ping response status
+
+### Activity Request
++ `type`: `type` (string, required) - activity type
++ `any_field`: `any_field` (string) - any addition data
 
 ### ContactUs Request
 + `name`: `Dredd Test` (string, required) - name
