@@ -1,16 +1,23 @@
 package controllers
 
 import (
-	"cig-exchange-libs"
+	cigExchange "cig-exchange-libs"
+	"cig-exchange-libs/auth"
+	"cig-exchange-libs/models"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+
 	"github.com/mattbaird/gochimp"
 )
 
 // SendContactUsEmail handles POST api/contact_us endpoint
 var SendContactUsEmail = func(w http.ResponseWriter, r *http.Request) {
+
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeContactUs)
+	defer cigExchange.PrintAPIError(apiErrorP)
 
 	type contactUs struct {
 		Name    string `json:"name"`
@@ -21,13 +28,25 @@ var SendContactUsEmail = func(w http.ResponseWriter, r *http.Request) {
 	// decode contact us info from request body
 	err := json.NewDecoder(r.Body).Decode(contactInfo)
 	if err != nil {
-		cigExchange.RespondWithError(w, 422, fmt.Errorf("Invalid request"))
+		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
+	missingFieldNames := make([]string, 0)
 	// check for empty request parameters
-	if len(contactInfo.Name) == 0 || len(contactInfo.Email) == 0 || len(contactInfo.Message) == 0 {
-		cigExchange.RespondWithError(w, 422, fmt.Errorf("Invalid request. %v", contactInfo))
+	if len(contactInfo.Name) == 0 {
+		missingFieldNames = append(missingFieldNames, "name")
+	}
+	if len(contactInfo.Email) == 0 {
+		missingFieldNames = append(missingFieldNames, "email")
+	}
+	if len(contactInfo.Message) == 0 {
+		missingFieldNames = append(missingFieldNames, "message")
+	}
+	if len(missingFieldNames) > 0 {
+		*apiErrorP = cigExchange.NewRequiredFieldError(missingFieldNames)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
@@ -50,11 +69,21 @@ var SendContactUsEmail = func(w http.ResponseWriter, r *http.Request) {
 	// we only have 1 recepient
 	if len(resp) == 1 {
 		if resp[0].Status == "rejected" {
-			cigExchange.RespondWithError(w, 422, fmt.Errorf("Invalid request. %v", resp[0].RejectedReason))
+			*apiErrorP = &cigExchange.APIError{}
+			(*apiErrorP).SetErrorType(cigExchange.ErrorTypeUnprocessableEntity)
+
+			nesetedError := (*apiErrorP).NewNestedError(cigExchange.ReasonMandrillFailure, "Invalid request")
+			nesetedError.OriginalError = fmt.Errorf("Invalid request. %v", resp[0].RejectedReason)
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
 			return
 		}
 	} else {
-		cigExchange.RespondWithError(w, 500, fmt.Errorf("Unable to send email"))
+		*apiErrorP = &cigExchange.APIError{}
+		(*apiErrorP).SetErrorType(cigExchange.ErrorTypeInternalServer)
+
+		nesetedError := (*apiErrorP).NewNestedError(cigExchange.ReasonMandrillFailure, "Unable to send email")
+		nesetedError.OriginalError = fmt.Errorf("Unable to send email")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 

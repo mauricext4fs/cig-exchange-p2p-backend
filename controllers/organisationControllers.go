@@ -5,7 +5,6 @@ import (
 	"cig-exchange-libs/auth"
 	"cig-exchange-libs/models"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -15,38 +14,41 @@ import (
 // GetOrganisation handles GET organisations/{organisation_id} endpoint
 var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetOrganisation)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
-
-	// check organisation id
-	if len(organisationID) == 0 {
-		apiError := cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
-		return
-	}
 
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		apiError := cigExchange.NewRoutingError(err)
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	*loggedInUserP = loggedInUser
+
+	// check organisation id
+	if len(organisationID) == 0 {
+		*apiErrorP = cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	if organisationID != loggedInUser.OrganisationUUID {
-		apiError := cigExchange.NewAccessRightsError("No access rights for the organisation")
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// query organisation from db
 	organisation, apiError := models.GetOrganisation(organisationID)
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
@@ -56,27 +58,31 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 // GetOrganisations handles GET organisations endpoint
 var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetOrganisation)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		apiError := cigExchange.NewRoutingError(err)
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
+	*loggedInUserP = loggedInUser
 
 	if len(loggedInUser.UserUUID) == 0 {
-		apiError := cigExchange.NewInvalidFieldError("user_id", "Invalid user id")
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewInvalidFieldError("user_id", "Invalid user id")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// query organisation from db
 	organisations, apiError := models.GetOrganisations(loggedInUser.UserUUID)
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
@@ -86,30 +92,34 @@ var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 // CreateOrganisation handles POST organisations endpoint
 var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeCreateOrganisation)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
 	// check jwt
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		apiError := cigExchange.NewRoutingError(err)
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
+	*loggedInUserP = loggedInUser
 
 	organisation := &models.Organisation{}
 	// decode organisation object from request body
 	err = json.NewDecoder(r.Body).Decode(organisation)
 	if err != nil {
-		apiError := cigExchange.NewJSONDecodingError(err)
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// insert organisation into db
 	apiError := organisation.Create()
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
@@ -123,8 +133,8 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// insert organisation user into db
 	apiError = orgUser.Create()
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
@@ -134,39 +144,41 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 // UpdateOrganisation handles PATCH organisations/{organisation_id} endpoint
 var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeUpdateOrganisation)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
-
-	// check organisation id
-	if len(organisationID) == 0 {
-		apiError := cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
-		return
-	}
 
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		apiError := cigExchange.NewRoutingError(err)
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	*loggedInUserP = loggedInUser
+
+	// check organisation id
+	if len(organisationID) == 0 {
+		*apiErrorP = cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	if organisationID != loggedInUser.OrganisationUUID {
-		apiError := cigExchange.NewAccessRightsError("No access rights for the organisation")
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// read request body
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		apiError := cigExchange.NewReadError("Failed to read request body", err)
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewReadError("Failed to read request body", err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
@@ -174,9 +186,8 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// decode organisation object from request body
 	err = json.Unmarshal(bytes, organisation)
 	if err != nil {
-		apiError := cigExchange.NewJSONDecodingError(err)
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
@@ -184,9 +195,8 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]interface from request body
 	err = json.Unmarshal(bytes, &organisationMap)
 	if err != nil {
-		apiError := cigExchange.NewJSONDecodingError(err)
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
@@ -200,16 +210,16 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// update organisation
 	apiError := organisation.Update(filteredOrganisationMap)
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// return updated organisation
 	existingOrganisation, apiError := models.GetOrganisation(organisationID)
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
@@ -219,64 +229,66 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 // DeleteOrganisation handles DELETE organisations/{organisation_id} endpoint
 var DeleteOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeDeleteOrganisation)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
-
-	// check organisation id
-	if len(organisationID) == 0 {
-		apiError := cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
-		return
-	}
 
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		apiError := cigExchange.NewRoutingError(err)
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	*loggedInUserP = loggedInUser
+
+	// check organisation id
+	if len(organisationID) == 0 {
+		*apiErrorP = cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	if organisationID != loggedInUser.OrganisationUUID {
-		apiError := cigExchange.NewAccessRightsError("No access rights for the organisation")
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// query organisaion from db
 	organisation, apiError := models.GetOrganisation(organisationID)
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// delete organisation
 	apiError = organisation.Delete()
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// get all organisation user for organisation UUID
 	orgUsers, apiError := models.GetOrganisationUsersForOrganisation(organisationID)
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// delete all organisation users
 	for _, orgUser := range orgUsers {
 		// TODO: hadnle JWT invalidation here
-		apiError = orgUser.Delete()
-		if apiError != nil {
-			fmt.Println(apiError.ToString())
-			cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = orgUser.Delete()
+		if *apiErrorP != nil {
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
 			return
 		}
 	}
@@ -287,31 +299,35 @@ var DeleteOrganisation = func(w http.ResponseWriter, r *http.Request) {
 // GetOrganisationUsers handles GET organisations/{organisation_id}/users endpoint
 var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetUsers)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
 
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		apiError := cigExchange.NewRoutingError(err)
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
+	*loggedInUserP = loggedInUser
 
 	// check permissions
 	if organisationID != loggedInUser.OrganisationUUID {
-		apiError := cigExchange.NewAccessRightsError("No access rights for the organisation")
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// query users from db
 	users, apiError := models.GetUsersForOrganisation(organisationID, false)
 	if err != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
@@ -321,6 +337,11 @@ var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 // DeleteOrganisationUser handles DELETE organisations/{organisation_id}/users/{user_id} endpoint
 var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeDeleteUser)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
 	userID := mux.Vars(r)["user_id"]
@@ -328,25 +349,24 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		apiError := cigExchange.NewRoutingError(err)
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
+	*loggedInUserP = loggedInUser
 
 	// check permissions
 	if organisationID != loggedInUser.OrganisationUUID {
-		apiError := cigExchange.NewAccessRightsError("No access rights for the organisation")
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// find user
 	_, apiError := models.GetUser(userID)
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 	// TODO: rewoke user JWT token
@@ -360,16 +380,16 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	// find OrganizationUser
 	orgUser, apiError := searchOrgUser.Find()
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
 	// delete OrganisationUser
 	apiError = orgUser.Delete()
 	if apiError != nil {
-		fmt.Println(apiError.ToString())
-		cigExchange.RespondWithAPIError(w, apiError)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 	w.WriteHeader(204)

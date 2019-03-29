@@ -36,6 +36,7 @@ func main() {
 	// register handlers for both platforms
 	// p2p
 	router.HandleFunc(p2pBaseURI+"users/switch/{organisation_id}", userAPI.ChangeOrganisationHandler).Methods("POST")
+	router.HandleFunc(p2pBaseURI+"users/{user_id}/activities", controllers.CreateUserActivity).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations", controllers.CreateOrganisation).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations", controllers.GetOrganisations).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.GetOrganisation).Methods("GET")
@@ -54,6 +55,7 @@ func main() {
 
 	// trading
 	router.HandleFunc(tradingBaseURI+"ping", controllers.Ping).Methods("GET")
+	router.HandleFunc(tradingBaseURI+"users/activities", controllers.CreateUserActivity).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/signup", userAPI.CreateUserHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/signin", userAPI.GetUserHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/send_otp", userAPI.SendCodeHandler).Methods("POST")
