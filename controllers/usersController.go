@@ -44,7 +44,7 @@ var GetUser = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// return updated user
+	// return user object
 	existingUser, apiError := models.GetUser(userID)
 	if apiError != nil {
 		*apiErrorP = apiError
