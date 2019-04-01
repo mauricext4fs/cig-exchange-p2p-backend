@@ -155,10 +155,19 @@ Fields that are present in json will be updated, even when they are empty.
 
 ## p2p/api/users/{user}/activities [/p2p/api/users/{user}/activities]
 
+### Retrieve user activities [GET]
+Returns all UserActivities for user.
+
++ Parameters
+    + user: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - user id
+
++ Response 200 (application/json)
+    + Attributes (array[Activity Response])
+
 ### Create user activity [POST]
 Create a new UserActivity object.
 Api call will save request body as jsonb in 'user_activity.info' field.
-JWT will be saved as jsonb in 'user_activity.jwt' field..
+JWT will be saved as jsonb in 'user_activity.jwt' field.
 
 + Parameters
     + user: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - user id
@@ -357,6 +366,13 @@ Only admin user can delete organisation.
 ### Activity Request
 + `type`: `type` (string, required) - activity type
 + `any_field`: `any_field` (string) - any addition data
+
+### Activity Response
++ `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user activity UUID
++ `user_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user UUID
++ `type`: `type` (string, required) - activity type
++ `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - user activity creation timestamp
++ `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - user activity updated timestamp
 
 ### ContactUs Request
 + `name`: `Dredd Test` (string, required) - name
