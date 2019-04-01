@@ -11,6 +11,50 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// GetUser handles GET users/{user_id} endpoint
+var GetUser = func(w http.ResponseWriter, r *http.Request) {
+
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetUser)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
+	// get request params
+	userID := mux.Vars(r)["user_id"]
+
+	// load context user info
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	*loggedInUserP = loggedInUser
+
+	// check user id
+	if len(userID) == 0 {
+		*apiErrorP = cigExchange.NewInvalidFieldError("user_id", "UserID is invalid")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	if userID != loggedInUser.UserUUID {
+		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the user")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// return user object
+	existingUser, apiError := models.GetUser(userID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	cigExchange.Respond(w, existingUser)
+}
+
 // UpdateUser handles PATCH users/{user_id} endpoint
 var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 

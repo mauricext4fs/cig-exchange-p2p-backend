@@ -267,6 +267,16 @@ func main() {
 		t.FullPath = "/p2p/api/users/switch/" + orgUUID
 	})
 
+	h.Before("P2P/Users > p2p/api/users/{user} > Retrieve user", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+
+		t.Request.URI = "/p2p/api/users/" + userUUID
+		t.FullPath = "/p2p/api/users/" + userUUID
+	})
+
 	h.Before("P2P/Users > p2p/api/users/{user} > Update user", func(t *trans.Transaction) {
 
 		if t.Request == nil {
