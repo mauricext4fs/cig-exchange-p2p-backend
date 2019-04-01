@@ -288,6 +288,16 @@ func main() {
 		t.FullPath = "/p2p/api/users/" + userUUID
 	})
 
+	h.Before("P2P/Users > p2p/api/users/{user}/activities > Retrieve user activities", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+
+		t.Request.URI = "/p2p/api/users/" + userUUID + "/activities"
+		t.FullPath = "/p2p/api/users/" + userUUID + "/activities"
+	})
+
 	h.Before("P2P/Organisations > p2p/api/organisations > Create organisation", func(t *trans.Transaction) {
 
 		if t.Request == nil {
