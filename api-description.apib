@@ -131,6 +131,15 @@ On success, jwt is returned.
 
 ## p2p/api/users/{user} [/p2p/api/users/{user}]
 
+### Retrieve user [GET]
+Returns a specific User object.
+
++ Parameters
+    + user: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - user id
+
++ Response 200 (application/json)
+    + Attributes (Update User Response)
+
 ### Update user [PATCH]
 Updates a specific User object.
 Fields that are present in json will be updated, even when they are empty.

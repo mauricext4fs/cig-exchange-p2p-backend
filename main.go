@@ -36,6 +36,7 @@ func main() {
 	// register handlers for both platforms
 	// p2p
 	router.HandleFunc(p2pBaseURI+"users/switch/{organisation_id}", userAPI.ChangeOrganisationHandler).Methods("POST")
+	router.HandleFunc(p2pBaseURI+"users/{user_id}", controllers.GetUser).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"users/{user_id}", controllers.UpdateUser).Methods("PATCH")
 	router.HandleFunc(p2pBaseURI+"users/{user_id}/activities", controllers.CreateUserActivity).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations", controllers.CreateOrganisation).Methods("POST")
