@@ -31,17 +31,24 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	}
 	*loggedInUserP = loggedInUser
 
-	// check organisation id
-	if len(organisationID) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
+	// check admin
+	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	if apiError != nil {
+		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
-	if organisationID != loggedInUser.OrganisationUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
-		return
+	// skip check for admin
+	if userRole != models.UserRoleAdmin {
+		// check organisation role
+		_, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		if apiError != nil {
+			// user don't belong to organisation
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
 	}
 
 	// query organisation from db
@@ -126,7 +133,7 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	orgUser := &models.OrganisationUser{
 		UserID:           loggedInUser.UserUUID,
 		OrganisationID:   organisation.ID,
-		OrganisationRole: "admin",
+		OrganisationRole: models.OrganisationRoleAdmin,
 		IsHome:           false,
 	}
 
@@ -161,17 +168,30 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	}
 	*loggedInUserP = loggedInUser
 
-	// check organisation id
-	if len(organisationID) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
+	// check admin
+	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	if apiError != nil {
+		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
-	if organisationID != loggedInUser.OrganisationUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
-		return
+	// skip check for admin
+	if userRole != models.UserRoleAdmin {
+		// check organisation role
+		orgUserRole, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		if apiError != nil {
+			// user don't belong to organisation
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+
+		if orgUserRole != models.OrganisationRoleAdmin {
+			*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
 	}
 
 	// read request body
@@ -208,7 +228,7 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	filteredOrganisationMap["id"] = organisationID
 
 	// update organisation
-	apiError := organisation.Update(filteredOrganisationMap)
+	apiError = organisation.Update(filteredOrganisationMap)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -246,14 +266,16 @@ var DeleteOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	}
 	*loggedInUserP = loggedInUser
 
-	// check organisation id
-	if len(organisationID) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
+	// get user role and check user and organisation id
+	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	if apiError != nil {
+		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
-	if organisationID != loggedInUser.OrganisationUUID {
+	// only admin user can delete organisation
+	if userRole != models.UserRoleAdmin {
 		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
@@ -316,16 +338,29 @@ var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 	}
 	*loggedInUserP = loggedInUser
 
-	// check permissions
-	if organisationID != loggedInUser.OrganisationUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
+	// check admin
+	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	if apiError != nil {
+		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
+	// skip check for admin
+	if userRole != models.UserRoleAdmin {
+		// check organisation role
+		_, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		if apiError != nil {
+			// user don't belong to organisation
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+	}
+
 	// query users from db
 	users, apiError := models.GetUsersForOrganisation(organisationID, false)
-	if err != nil {
+	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
@@ -355,21 +390,63 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	}
 	*loggedInUserP = loggedInUser
 
-	// check permissions
-	if organisationID != loggedInUser.OrganisationUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
-		return
-	}
-
-	// find user
-	_, apiError := models.GetUser(userID)
+	// check admin
+	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
-	// TODO: rewoke user JWT token
+
+	// skip check for admin
+	if userRole != models.UserRoleAdmin {
+		// check organisation role
+		orgUserRole, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		if apiError != nil {
+			// user don't belong to organisation
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+
+		if orgUserRole != models.OrganisationRoleAdmin {
+			*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+
+		orgUsers, apiError := models.GetOrganisationUsersForOrganisation(organisationID)
+		if apiError != nil {
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+
+		// check that organisation has 2 admins
+		skip := false
+		isHome := false
+		for _, ou := range orgUsers {
+			if ou.OrganisationRole == models.OrganisationRoleAdmin {
+				if ou.UserID != loggedInUser.UserUUID {
+					skip = true
+				} else {
+					isHome = ou.IsHome
+				}
+			}
+		}
+		// only 1 admin
+		if !skip {
+			*apiErrorP = cigExchange.NewAccessRightsError("Can't remove from organisation admin user")
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+
+		if isHome {
+			*apiErrorP = cigExchange.NewAccessRightsError("Can't remove admin user from home organisation")
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+	}
 
 	// fill OrganizationUser with user id and organisation id
 	searchOrgUser := models.OrganisationUser{

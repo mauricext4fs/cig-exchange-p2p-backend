@@ -222,6 +222,11 @@ func main() {
 
 		setBodyValue(&t.Request.Body, "uuid", userUUID)
 		setBodyValue(&t.Request.Body, "code", redisCmd.Val())
+		err := dbClient.Model(&models.User{}).Updates(&models.User{ID: userUUID, Role: models.UserRoleAdmin}).Error
+		if err != nil {
+			fmt.Println("ERROR: updatingDatabase: create admin:")
+			fmt.Println(err.Error())
+		}
 	})
 
 	h.After("Trading/Users > invest/api/users/verify_otp > Verify OTP", func(t *trans.Transaction) {
