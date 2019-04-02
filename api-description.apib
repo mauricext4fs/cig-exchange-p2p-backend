@@ -371,6 +371,8 @@ Only admin user can delete organisation.
 + `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user activity UUID
 + `user_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user UUID
 + `type`: `type` (string, required) - activity type
++ `info` (object, required) - activity info
++ `jwt` (object, required) - activity jwt
 + `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - user activity creation timestamp
 + `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - user activity updated timestamp
 
@@ -402,12 +404,28 @@ Only admin user can delete organisation.
 + `type`: `type1, type2` (array[string]) - offering types array
 + `description`: `description` (string) - offering description
 + `rating`: `rating` (string) - offering rating
++ `slug`: `slug` (string) - offering slug
 + `amount`: `200.98` (number) - offering amount
 + `remaining`: `100.66` (number) - offering remaining
 + `interest`: `10.5` (number) - offering interest
 + `period`: `300` (number) - offering period
-+ `is_visible`: `true` (boolean) - offering visibility flag
 + `origin`: `origin` (string) - offering origin
++ `map` (object) - offering map
++ `location` (object) - offering location
++ `tagline1`: `tagline1` (string) - offering tagline 1
++ `tagline2`: `tagline2` (string) - offering tagline 2
++ `tagline3`: `tagline3` (string) - offering tagline 3
++ `current_debt_level`: `current_debt_level` (string) - current debt level
++ `current_debt_end_datetime`: `2016-06-23` (string) - current debt end datetime
++ `amount_already_taken`: `300` (number) - amount already taken
++ `minimum_investment`: `10` (number) - offering minimum_investment
++ `maximum_investment`: `500` (number) - offering maximum_investment
++ `transaction_fee`: `100` (number) - offering transaction fee
++ `p2p_fee`: `20` (number) - offering p2p fee
++ `referral_reward`: `20` (number) - offering referral reward
++ `closing_date`: `2016-06-23` (string) - offering closing date
++ `origin`: `origin` (string) - offering origin
++ `is_visible`: `true` (boolean) - offering visibility flag
 + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
 
 ### Offering Response
@@ -416,12 +434,28 @@ Only admin user can delete organisation.
 + `type`: `type1, type2` (array[string], required) - offering types array
 + `description`: `description` (string, required) - offering description
 + `rating`: `rating` (string, required) - offering rating
++ `slug`: `slug` (string, required) - offering slug
 + `amount`: `200.98` (number, required) - offering amount
 + `remaining`: `100.66` (number, required) - offering remaining
 + `interest`: `10.5` (number, required) - offering interest
 + `period`: `300` (number, required) - offering period
-+ `is_visible`: `true` (boolean, required) - offering visibility flag
 + `origin`: `origin` (string, required) - offering origin
++ `map` (object, required) - offering map
++ `location` (object, required) - offering location
++ `tagline1`: `tagline1` (string, required) - offering tagline 1
++ `tagline2`: `tagline2` (string, required) - offering tagline 2
++ `tagline3`: `tagline3` (string, required) - offering tagline 3
++ `current_debt_level`: `current_debt_level` (string, required) - current debt level
++ `current_debt_end_datetime`: `2016-06-23` (string, required) - current debt end datetime
++ `amount_already_taken`: `300` (number, required) - amount already taken
++ `minimum_investment`: `10` (number, required) - offering minimum_investment
++ `maximum_investment`: `500` (number, required) - offering maximum_investment
++ `transaction_fee`: `100` (number, required) - offering transaction fee
++ `p2p_fee`: `20` (number, required) - offering p2p fee
++ `referral_reward`: `20` (number, required) - offering referral reward
++ `closing_date`: `2016-06-23` (string, required) - offering closing date
++ `origin`: `origin` (string, required) - offering origin
++ `is_visible`: `true` (boolean, required) - offering visibility flag
 + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
 + `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering creation timestamp
 + `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
