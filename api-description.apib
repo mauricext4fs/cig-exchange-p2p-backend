@@ -115,12 +115,22 @@ On success, user id is returned.
     + Attributes (User Response)
 
 
+# Group P2P/Me
+
+## p2p/api/me/info [/p2p/api/me/info]
+
+### Get user info [GET]
+Returns user info.
+
++ Response 200 (application/json)
+    + Attributes (Info Response)
+
 # Group P2P/Users
 
 ## p2p/api/users/switch/{organisation} [/p2p/api/users/switch/{organisation}]
 
 ### Switch Organisation [POST]
-Change organisation.
+Changes organisation.
 On success, jwt is returned.
 
 + Parameters
@@ -535,6 +545,8 @@ Only admin user can delete organisation.
 
 ### OTP Response
 + `jwt`: `1234567890` (string, required) - jwt for futher auth
+
+### Info Response
 + `user_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
 + `role`: `admin` (string, required) - user role
 + `organisation_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - organisation uuid
