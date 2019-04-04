@@ -305,6 +305,8 @@ Returns all users belonging to sepcified organisation.
 
 ### Delete organisation user [DELETE]
 Deletes a specific organisation user.
+Only admin and organisation admin can use this api call.
+Organisation admin can't delete himself from organisation.
 
 + Parameters
     + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
