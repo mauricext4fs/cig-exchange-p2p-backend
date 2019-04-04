@@ -7,6 +7,7 @@ import (
 
 	cigExchange "cig-exchange-libs"
 
+	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/lib/pq"
 	"github.com/snikch/goodman/hooks"
 	trans "github.com/snikch/goodman/transaction"
@@ -95,12 +96,15 @@ func main() {
 	}
 	orgUUID = org.ID
 
+	metadata := json.RawMessage(`{"en":"url","fr":"url","it":"url","de":"url"}`)
+
 	// create some offerings belonging to 'dredd' organization
 	offering := models.Offering{
-		Title:          dredd,
-		OrganisationID: orgUUID,
-		Type:           make(pq.StringArray, 0),
-		IsVisible:      true,
+		Title:             dredd,
+		OrganisationID:    orgUUID,
+		Type:              make(pq.StringArray, 0),
+		IsVisible:         true,
+		OfferingDirectURL: postgres.Jsonb{RawMessage: metadata},
 	}
 	err = dbClient.Create(&offering).Error
 	if err != nil {
