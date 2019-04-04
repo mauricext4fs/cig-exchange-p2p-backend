@@ -390,6 +390,20 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	}
 	*loggedInUserP = loggedInUser
 
+	// fill OrganizationUser with user id and organisation id
+	searchOrgUser := models.OrganisationUser{
+		UserID:         userID,
+		OrganisationID: organisationID,
+	}
+
+	// find OrganizationUser
+	orgUserDelete, apiError := searchOrgUser.Find()
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
 	// check admin
 	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
@@ -410,60 +424,24 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if orgUserRole != models.OrganisationRoleAdmin {
-			*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
+			*apiErrorP = cigExchange.NewAccessRightsError("Only admin user can delete users from organisation")
 			cigExchange.RespondWithAPIError(w, *apiErrorP)
 			return
 		}
 
-		orgUsers, apiError := models.GetOrganisationUsersForOrganisation(organisationID)
-		if apiError != nil {
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
-			return
-		}
+		// checks before delete admin user
+		if orgUserDelete.OrganisationRole == models.OrganisationRoleAdmin {
 
-		// check that organisation has 2 admins
-		skip := false
-		isHome := false
-		for _, ou := range orgUsers {
-			if ou.OrganisationRole == models.OrganisationRoleAdmin {
-				if ou.UserID != loggedInUser.UserUUID {
-					skip = true
-				} else {
-					isHome = ou.IsHome
-				}
+			if orgUserDelete.UserID == loggedInUser.UserUUID {
+				*apiErrorP = cigExchange.NewAccessRightsError("Admin user can't remove himself from organisation")
+				cigExchange.RespondWithAPIError(w, *apiErrorP)
+				return
 			}
 		}
-		// only 1 admin
-		if !skip {
-			*apiErrorP = cigExchange.NewAccessRightsError("Can't remove from organisation admin user")
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
-			return
-		}
-
-		if isHome {
-			*apiErrorP = cigExchange.NewAccessRightsError("Can't remove admin user from home organisation")
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
-			return
-		}
-	}
-
-	// fill OrganizationUser with user id and organisation id
-	searchOrgUser := models.OrganisationUser{
-		UserID:         userID,
-		OrganisationID: organisationID,
-	}
-
-	// find OrganizationUser
-	orgUser, apiError := searchOrgUser.Find()
-	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
-		return
 	}
 
 	// delete OrganisationUser
-	apiError = orgUser.Delete()
+	apiError = orgUserDelete.Delete()
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
