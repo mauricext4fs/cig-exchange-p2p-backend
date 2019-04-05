@@ -227,6 +227,18 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	organisation.ID = organisationID
 	filteredOrganisationMap["id"] = organisationID
 
+	// only admin can change organisation status
+	if userRole != models.UserRoleAdmin {
+		org, apiError := models.GetOrganisation(organisationID)
+		if apiError != nil {
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+		organisation.Status = org.Status
+		filteredOrganisationMap["status"] = org.Status
+	}
+
 	// update organisation
 	apiError = organisation.Update(filteredOrganisationMap)
 	if apiError != nil {
