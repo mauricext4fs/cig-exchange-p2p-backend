@@ -91,6 +91,7 @@ func main() {
 	org := models.Organisation{
 		Name:         dredd,
 		ReferenceKey: dredd,
+		Status:       models.OrganisationStatusVerified,
 	}
 	err := dbClient.Create(&org).Error
 	if err != nil {

@@ -32,7 +32,8 @@ Send contact us email message.
 ## invest/api/offerings [/invest/api/offerings]
 
 ### Offerings [GET]
-Get all offerings. This call doesn't filter offerings and doesn't require JWT.
+Get visible offerings from verified organisations.
+This call doesn't require JWT.
 
 + Response 200 (application/json)
     + Attributes (array[Trading Offering Response])
@@ -545,6 +546,7 @@ Only admin user can delete organisation.
 + `website`: `website` (string) - organisation website
 + `reference_key`: `reference_key` (string) - organisation reference key
 + `offering_rating_description`: `offering_rating_description` (string) - organisation offering rating description
++ `status`: `unverified` (string) - organisation status
 
 ### Organisation Response
 + `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - organisation UUID
@@ -553,6 +555,7 @@ Only admin user can delete organisation.
 + `website`: `website` (string) - organisation website
 + `reference_key`: `reference_key` (string) - organisation reference key
 + `offering_rating_description`: `offering_rating_description` (string) - organisation offering rating description
++ `status`: `unverified` (string) - organisation status
 + `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - organisation creation timestamp
 + `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - organisation updated timestamp
 

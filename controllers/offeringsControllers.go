@@ -324,7 +324,7 @@ var GetAllOfferings = func(w http.ResponseWriter, r *http.Request) {
 	// add organisation name to offerings structs
 	respOfferings := make([]*offeringsReponse, 0)
 	for _, offering := range offerings {
-		if offering.IsVisible {
+		if offering.IsVisible && offering.Organisation.Status != models.OrganisationStatusUnverified {
 			respOffering := &offeringsReponse{}
 			respOffering.Offering = offering
 			respOffering.OrganisationName = offering.Organisation.Name
