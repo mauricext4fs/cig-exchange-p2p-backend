@@ -16,6 +16,7 @@ import (
 const dredd = "dredd"
 const dredd2 = "dredd2"
 const dredd3 = "dredd3"
+const dredd4 = "dredd4"
 const dreddP2P = "dredd_p2p"
 
 func main() {
@@ -36,14 +37,16 @@ func main() {
 	invitationUUID := ""
 
 	// prepare the database:
-	// 1. delete 'dredd' users if it exists (first name  = 'dredd', 'dredd2', 'dredd3')
+	// 1. delete 'dredd' users if it exists (first name  = 'dredd', 'dredd2', 'dredd3', 'dredd4')
 	// 2. delete 'dredd' organisations if it exists (reference key = 'dredd', 'dredd2', 'dredd3')
 	// 3. create 'dredd' organisation (user will be registered with it)
 	// 4. create some offerings belonging to 'dredd' organization
 	// 5. verify that created offerings are present in 'invest/offerings' api call
+	// 6. create dredd4 user
+	// 7. add 'dredd4' user to organisation 'dredd'
 
 	// delete 'dredd' users if it exists (first name  = 'dredd', 'dredd2', 'dredd3')
-	dreddUsers := [3]string{dredd, dredd2, dredd3}
+	dreddUsers := [4]string{dredd, dredd2, dredd3, dredd4}
 	for _, name := range dreddUsers {
 		usersDelete := make([]models.User, 0)
 		err := dbClient.Where(&models.User{Name: name}).Find(&usersDelete).Error
@@ -109,6 +112,36 @@ func main() {
 	err = dbClient.Create(&offering).Error
 	if err != nil {
 		fmt.Println("ERROR: prepareDatabase: create offering:")
+		fmt.Println(err.Error())
+	}
+
+	// add 'dredd4' user
+	dredd4 := &models.User{
+		Sex:            "male",
+		Role:           models.UserRoleUser,
+		Name:           "dredd4",
+		LastName:       "dredd4",
+		LoginEmailUUID: nil,
+		LoginPhoneUUID: nil,
+		Status:         models.UserStatusVerified,
+	}
+	err = dbClient.Create(&dredd4).Error
+	if err != nil {
+		fmt.Println("ERROR: prepareDatabase: create dredd4:")
+		fmt.Println(err.Error())
+	}
+
+	// add 'dredd4' user to organisation 'dredd'
+	orgUserDD := &models.OrganisationUser{
+		UserID:           dredd4.ID,
+		OrganisationID:   orgUUID,
+		Status:           models.OrganisationUserStatusActive,
+		IsHome:           true,
+		OrganisationRole: models.OrganisationRoleUser,
+	}
+	err = dbClient.Create(&orgUserDD).Error
+	if err != nil {
+		fmt.Println("ERROR: prepareDatabase: create organisation user:")
 		fmt.Println(err.Error())
 	}
 
@@ -269,6 +302,20 @@ func main() {
 
 		t.Request.URI = "/p2p/api/users/switch/" + orgUUID
 		t.FullPath = "/p2p/api/users/switch/" + orgUUID
+	})
+
+	h.After("P2P/Users > p2p/api/users/switch/{organisation} > Switch Organisation", func(t *trans.Transaction) {
+
+		// happens when api is down
+		if t.Real == nil {
+			return
+		}
+
+		userJWT = getBodyValue(&t.Real.Body, "jwt")
+		if len(userJWT) == 0 {
+			t.Fail = "Unable to save user JWT"
+			return
+		}
 	})
 
 	h.Before("P2P/Users > p2p/api/users/{user} > Retrieve user", func(t *trans.Transaction) {
@@ -560,13 +607,13 @@ func main() {
 			t.Fail = "Organisation UUID missing"
 			return
 		}
-		if len(userUUID) == 0 {
+		if len(dredd4.ID) == 0 {
 			t.Fail = "User UUID missing"
 			return
 		}
 
-		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/users/" + userUUID
-		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/users/" + userUUID
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/users/" + dredd4.ID
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/users/" + dredd4.ID
 	})
 
 	server.Serve()
