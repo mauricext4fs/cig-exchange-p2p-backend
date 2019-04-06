@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm/dialects/postgres"
 )
 
 // GetOffering handles GET organisations/{organisation_id}/offerings/{offering_id} endpoint
@@ -82,8 +83,40 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	offering := &models.Offering{}
+
+	// read request body
+	bytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		*apiErrorP = cigExchange.NewReadError("Failed to read request body", err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	offeringMap := make(map[string]interface{})
+	// decode map[string]interface from request body
+	err = json.Unmarshal(bytes, &offeringMap)
+	if err != nil {
+		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// remove unknow fields from map
+	filteredOfferingMap := cigExchange.FilterUnknownFields(&models.Offering{}, offeringMap)
+
+	// get jsonb fields
+	names := offering.GetMultilangFields()
+	convertMapToJSONB(&filteredOfferingMap, names)
+
+	jsonBytes, err := json.Marshal(filteredOfferingMap)
+	if err != nil {
+		*apiErrorP = cigExchange.NewJSONEncodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
 	// decode offering object from request body
-	err = json.NewDecoder(r.Body).Decode(offering)
+	err = json.Unmarshal(jsonBytes, offering)
 	if err != nil {
 		*apiErrorP = cigExchange.NewJSONDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -127,6 +160,8 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	}
 	*loggedInUserP = loggedInUser
 
+	offering := &models.Offering{}
+
 	if organisationID != loggedInUser.OrganisationUUID {
 		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -137,15 +172,6 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		*apiErrorP = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
-		return
-	}
-
-	offering := &models.Offering{}
-	// decode offering object from request body
-	err = json.Unmarshal(bytes, offering)
-	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -161,6 +187,25 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	// remove unknow fields from map
 	filteredOfferingMap := cigExchange.FilterUnknownFields(&models.Offering{}, offeringMap)
+
+	// get jsonb fields
+	names := offering.GetMultilangFields()
+	convertMapToJSONB(&filteredOfferingMap, names)
+
+	jsonBytes, err := json.Marshal(filteredOfferingMap)
+	if err != nil {
+		*apiErrorP = cigExchange.NewJSONEncodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// decode offering object from request body
+	err = json.Unmarshal(jsonBytes, offering)
+	if err != nil {
+		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
 
 	if len(offering.OrganisationID) == 0 {
 		*apiErrorP = cigExchange.NewInvalidFieldError("organisation_id", "Required field 'organisation_id' missing")
@@ -334,4 +379,32 @@ var GetAllOfferings = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cigExchange.Respond(w, respOfferings)
+}
+
+func convertMapToJSONB(offeringMap *map[string]interface{}, fields []string) *cigExchange.APIError {
+
+	localMap := *offeringMap
+
+	for _, name := range fields {
+		val, ok := localMap[name]
+		if !ok {
+			continue
+		}
+		switch v := val.(type) {
+		case string:
+			strVal := `{"en":"` + v + `"}`
+			metadata := json.RawMessage(strVal)
+			localMap[name] = postgres.Jsonb{RawMessage: metadata}
+		case int32, int64:
+			return cigExchange.NewInvalidFieldError(name, "Field '"+name+"' has invalid type")
+		default:
+			mapB, err := json.Marshal(v)
+			if err != nil {
+				return cigExchange.NewJSONEncodingError(err)
+			}
+			metadata := json.RawMessage(mapB)
+			localMap[name] = postgres.Jsonb{RawMessage: metadata}
+		}
+	}
+	return nil
 }

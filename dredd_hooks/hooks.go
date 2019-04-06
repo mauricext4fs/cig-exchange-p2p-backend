@@ -4,6 +4,7 @@ import (
 	"cig-exchange-libs/models"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	cigExchange "cig-exchange-libs"
 
@@ -101,15 +102,17 @@ func main() {
 	orgUUID = org.ID
 
 	metadata := json.RawMessage(`{"en":"url","fr":"url","it":"url","de":"url"}`)
+	titleMetadata := json.RawMessage(`{"en":"` + dredd + `"}`)
 
 	// create some offerings belonging to 'dredd' organization
 	offering := models.Offering{
-		Title:             dredd,
+		Title:             postgres.Jsonb{RawMessage: titleMetadata},
 		OrganisationID:    orgUUID,
 		Type:              make(pq.StringArray, 0),
 		IsVisible:         true,
 		OfferingDirectURL: postgres.Jsonb{RawMessage: metadata},
 	}
+
 	err = dbClient.Create(&offering).Error
 	if err != nil {
 		fmt.Println("ERROR: prepareDatabase: create offering:")
@@ -175,7 +178,7 @@ func main() {
 		}
 
 		for _, offering := range offerings {
-			if offering.Title == dredd {
+			if strings.Contains(string(offering.Title.RawMessage), `:"`+dredd+`"`) {
 				// we found a match, api works fine
 				return
 			}
@@ -460,12 +463,12 @@ func main() {
 		p2pFound := false
 		homepageFound := false
 		for _, offering := range offerings {
-			if offering.Title == dredd {
+			if strings.Contains(string(offering.Title.RawMessage), `:"`+dredd+`"`) {
 				homepageFound = true
 				continue
 			}
 
-			if offering.Title == dreddP2P {
+			if strings.Contains(string(offering.Title.RawMessage), `:"`+dreddP2P+`"`) {
 				p2pFound = true
 				continue
 			}

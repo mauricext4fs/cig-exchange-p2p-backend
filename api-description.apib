@@ -246,7 +246,7 @@ Fields that are present in json will be updated, even when they are empty.
     + offering: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
 
 + Request (application/json)
-    + Attributes (Offering Request)
+    + Attributes (Offering Update Request)
 
 + Response 200 (application/json)
     + Attributes (Offering Response)
@@ -443,22 +443,22 @@ Only admin user can delete organisation.
 + `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
 
 ### Offering Request
-+ `title`: `title` (string) - offering title
-+ `type`: `type1, type2` (array[string]) - offering types array
-+ `description`: `description` (string) - offering description
-+ `rating`: `rating` (string) - offering rating
-+ `slug`: `slug` (string) - offering slug
++ `title` (Multilanguage String, required) - offering title
++ `type`: `type1, type2` (array[string], required) - offering types array
++ `description` (Multilanguage String) - offering description
++ `rating` (Multilanguage String) - offering rating
++ `slug` (Multilanguage String) - offering slug
 + `amount`: `200.98` (number) - offering amount
 + `remaining`: `100.66` (number) - offering remaining
 + `interest`: `10.5` (number) - offering interest
 + `period`: `300` (number) - offering period
-+ `origin`: `origin` (string) - offering origin
++ `origin`: `origin` (string, required) - offering origin
 + `map` (Map Object) - offering map object
-+ `location`: `location` (string) - offering location object
-+ `tagline1`: `tagline1` (string) - offering tagline 1
-+ `tagline2`: `tagline2` (string) - offering tagline 2
-+ `tagline3`: `tagline3` (string) - offering tagline 3
-+ `current_debt_level`: `current_debt_level` (string) - current debt level
++ `location` (Multilanguage String) - offering location object
++ `tagline1` (Multilanguage String) - offering tagline 1
++ `tagline2` (Multilanguage String) - offering tagline 2
++ `tagline3` (Multilanguage String) - offering tagline 3
++ `current_debt_level` (Multilanguage String) - current debt level
 + `current_debt_end_datetime`: `2016-06-23` (string) - current debt end datetime
 + `amount_already_taken`: `300` (number) - amount already taken
 + `minimum_investment`: `10` (number) - offering minimum_investment
@@ -467,10 +467,44 @@ Only admin user can delete organisation.
 + `p2p_fee`: `20` (number) - offering p2p fee
 + `referral_reward`: `20` (number) - offering referral reward
 + `closing_date`: `2016-06-23` (string) - offering closing date
-+ `origin`: `origin` (string) - offering origin
 + `is_visible`: `true` (boolean) - offering visibility flag
 + `offering_direct_url` (Offering Direct Urls, required) - offering direct url
 + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
+
+### Offering Update Request
++ `title` (Multilanguage String) - offering title
++ `type`: `type1, type2` (array[string]) - offering types array
++ `description` (Multilanguage String) - offering description
++ `rating` (Multilanguage String) - offering rating
++ `slug` (Multilanguage String) - offering slug
++ `amount`: `200.98` (number) - offering amount
++ `remaining`: `100.66` (number) - offering remaining
++ `interest`: `10.5` (number) - offering interest
++ `period`: `300` (number) - offering period
++ `origin`: `origin` (string) - offering origin
++ `map` (Map Object) - offering map object
++ `location` (Multilanguage String) - offering location object
++ `tagline1` (Multilanguage String) - offering tagline 1
++ `tagline2` (Multilanguage String) - offering tagline 2
++ `tagline3` (Multilanguage String) - offering tagline 3
++ `current_debt_level` (Multilanguage String) - current debt level
++ `current_debt_end_datetime`: `2016-06-23` (string) - current debt end datetime
++ `amount_already_taken`: `300` (number) - amount already taken
++ `minimum_investment`: `10` (number) - offering minimum_investment
++ `maximum_investment`: `500` (number) - offering maximum_investment
++ `transaction_fee`: `100` (number) - offering transaction fee
++ `p2p_fee`: `20` (number) - offering p2p fee
++ `referral_reward`: `20` (number) - offering referral reward
++ `closing_date`: `2016-06-23` (string) - offering closing date
++ `is_visible`: `true` (boolean) - offering visibility flag
++ `offering_direct_url` (Offering Direct Urls) - offering direct url
++ `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string) - offering organisation
+
+### Multilanguage String
++ `en`: `string` (string) - en
++ `fr`: `string` (string) - fr
++ `it`: `string` (string) - it
++ `de`: `string` (string) - de
 
 ### Offering Direct Urls
 + `en`: `url` (string, required) - offering direct url(en)
@@ -480,22 +514,22 @@ Only admin user can delete organisation.
 
 ### Offering Response
 + `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - offering UUID
-+ `title`: `title` (string, required) - offering title
++ `title` (Multilanguage String, required) - offering title
 + `type`: `type1, type2` (array[string], required) - offering types array
-+ `description`: `description` (string, required) - offering description
-+ `rating`: `rating` (string, required) - offering rating
-+ `slug`: `slug` (string, required) - offering slug
++ `description` (Multilanguage String, required) - offering description
++ `rating` (Multilanguage String, required) - offering rating
++ `slug` (Multilanguage String, required) - offering slug
 + `amount`: `200.98` (number, required) - offering amount
 + `remaining`: `100.66` (number, required) - offering remaining
 + `interest`: `10.5` (number, required) - offering interest
 + `period`: `300` (number, required) - offering period
 + `origin`: `origin` (string, required) - offering origin
 + `map` (Map Object, required) - offering map object
-+ `location`: `location` (string, required) - offering location object
-+ `tagline1`: `tagline1` (string, required) - offering tagline 1
-+ `tagline2`: `tagline2` (string, required) - offering tagline 2
-+ `tagline3`: `tagline3` (string, required) - offering tagline 3
-+ `current_debt_level`: `current_debt_level` (string, required) - current debt level
++ `location` (Multilanguage String, required) - offering location object
++ `tagline1` (Multilanguage String, required) - offering tagline 1
++ `tagline2` (Multilanguage String, required) - offering tagline 2
++ `tagline3` (Multilanguage String, required) - offering tagline 3
++ `current_debt_level` (Multilanguage String, required) - current debt level
 + `current_debt_end_datetime`: `2016-06-23` (string, required) - current debt end datetime
 + `amount_already_taken`: `300` (number, required) - amount already taken
 + `minimum_investment`: `10` (number, required) - offering minimum_investment
