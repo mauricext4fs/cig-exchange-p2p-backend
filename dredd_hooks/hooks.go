@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"cig-exchange-libs/models"
 	"encoding/json"
 	"fmt"
@@ -101,15 +102,18 @@ func main() {
 	orgUUID = org.ID
 
 	metadata := json.RawMessage(`{"en":"url","fr":"url","it":"url","de":"url"}`)
+	titleMetadata := json.RawMessage(`{"en":"` + dredd + `"}`)
 
 	// create some offerings belonging to 'dredd' organization
 	offering := models.Offering{
-		Title:             dredd,
+		Title:             postgres.Jsonb{RawMessage: titleMetadata},
 		OrganisationID:    orgUUID,
 		Type:              make(pq.StringArray, 0),
 		IsVisible:         true,
 		OfferingDirectURL: postgres.Jsonb{RawMessage: metadata},
+		Origin:            postgres.Jsonb{RawMessage: metadata},
 	}
+
 	err = dbClient.Create(&offering).Error
 	if err != nil {
 		fmt.Println("ERROR: prepareDatabase: create offering:")
@@ -167,18 +171,9 @@ func main() {
 		}
 
 		// verify that created offerings are present in 'invest/offerings' api call
-		offerings := make([]models.Offering, 0)
-		err := json.Unmarshal([]byte(t.Real.Body), &offerings)
-		if err != nil {
-			t.Fail = fmt.Sprintf("Unable to parse response: %v", err.Error())
+		found := bytes.Contains([]byte(t.Real.Body), []byte(dredd))
+		if found {
 			return
-		}
-
-		for _, offering := range offerings {
-			if offering.Title == dredd {
-				// we found a match, api works fine
-				return
-			}
 		}
 
 		t.Fail = "Pre-created offering is missing"
@@ -450,29 +445,8 @@ func main() {
 		}
 
 		// verify that created offerings are present in 'p2p/offerings' api call
-		offerings := make([]models.Offering, 0)
-		err := json.Unmarshal([]byte(t.Real.Body), &offerings)
-		if err != nil {
-			t.Fail = fmt.Sprintf("Unable to parse response: %v", err.Error())
-			return
-		}
-
-		p2pFound := false
-		homepageFound := false
-		for _, offering := range offerings {
-			if offering.Title == dredd {
-				homepageFound = true
-				continue
-			}
-
-			if offering.Title == dreddP2P {
-				p2pFound = true
-				continue
-			}
-		}
-
-		if p2pFound && homepageFound {
-			// we found a match, api works fine
+		found := bytes.Contains([]byte(t.Real.Body), []byte(dreddP2P))
+		if found {
 			return
 		}
 
