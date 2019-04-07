@@ -85,6 +85,28 @@ var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// get user role
+	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// only admin user can create organisation
+	if userRole == models.UserRoleAdmin {
+		// query organisation from db
+		organisations, apiError := models.GetAllOrganisations()
+		if apiError != nil {
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+
+		cigExchange.Respond(w, organisations)
+		return
+	}
+
 	// query organisation from db
 	organisations, apiError := models.GetOrganisations(loggedInUser.UserUUID)
 	if apiError != nil {
@@ -113,6 +135,21 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	}
 	*loggedInUserP = loggedInUser
 
+	// get user role
+	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// only admin user can create organisation
+	if userRole != models.UserRoleAdmin {
+		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
 	organisation := &models.Organisation{}
 	// decode organisation object from request body
 	err = json.NewDecoder(r.Body).Decode(organisation)
@@ -123,7 +160,7 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// insert organisation into db
-	apiError := organisation.Create()
+	apiError = organisation.Create()
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -454,6 +491,71 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 
 	// delete OrganisationUser
 	apiError = orgUserDelete.Delete()
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	w.WriteHeader(204)
+}
+
+// AddOrganisationUser handles POST organisations/{organisation_id}/users/{user_id} endpoint
+var AddOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
+
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeDeleteUser)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
+	// get request params
+	organisationID := mux.Vars(r)["organisation_id"]
+	userID := mux.Vars(r)["user_id"]
+
+	// load context user info
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	*loggedInUserP = loggedInUser
+
+	// check admin
+	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// skip check for admin
+	if userRole != models.UserRoleAdmin {
+		*apiErrorP = cigExchange.NewAccessRightsError("Only admin user can directly add users to organisation. Organisation admin must use '/organisation/{}/invitations' api calls")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// fill OrganizationUser with user id and organisation id
+	searchOrgUser := models.OrganisationUser{
+		UserID:         userID,
+		OrganisationID: organisationID,
+	}
+
+	// find OrganizationUser
+	_, apiError = searchOrgUser.Find()
+	if apiError == nil {
+		*apiErrorP = cigExchange.NewInvalidFieldError("user_id", "User already belongs to organisation")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	apiError = nil
+
+	searchOrgUser.IsHome = false
+	searchOrgUser.OrganisationRole = models.OrganisationRoleUser
+	searchOrgUser.Status = models.OrganisationStatusUnverified
+
+	// create OrganisationUser
+	apiError = searchOrgUser.Create()
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)

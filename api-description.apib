@@ -325,6 +325,15 @@ Organisation admin can't delete himself from organisation.
 
 + Response 204
 
+### Add organisation user [POST]
+Only admin can directly add user to organisation.
+Other users must use /p2p/api/organisations/{organisation}/invitations.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + user: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the user to add from the organisation
+
++ Response 204
 
 # Group P2P/Organisations
 
@@ -350,6 +359,7 @@ Returns all Organisations for user.
 
 ### Retrieve organisation [GET]
 Returns a specific Organisation object.
+Admin can retrieve any organisation.
 
 + Parameters
     + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
