@@ -42,18 +42,19 @@ func main() {
 	router.HandleFunc(p2pBaseURI+"users/{user_id}", controllers.UpdateUser).Methods("PATCH")
 	router.HandleFunc(p2pBaseURI+"users/{user_id}/activities", controllers.GetUserActivities).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"users/{user_id}/activities", controllers.CreateUserActivity).Methods("POST")
-	router.HandleFunc(p2pBaseURI+"organisations", controllers.CreateOrganisation).Methods("POST")
-	router.HandleFunc(p2pBaseURI+"organisations", controllers.GetOrganisations).Methods("GET")
-	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.GetOrganisation).Methods("GET")
-	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.UpdateOrganisation).Methods("PATCH")
-	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.DeleteOrganisation).Methods("DELETE")
+	router.HandleFunc(p2pBaseURI+"organisations", controllers.CreateOrganisation).Methods("POST")                     // only admin can create organisation. Organisation will be empty
+	router.HandleFunc(p2pBaseURI+"organisations", controllers.GetOrganisations).Methods("GET")                        // all user will receive list of their organisations, admin will receive all organisations
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.GetOrganisation).Methods("GET")       // users can get organisation that they belongs to, admin can get any organisation
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.UpdateOrganisation).Methods("PATCH")  // org admins can change all except 'status', admin can change all
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.DeleteOrganisation).Methods("DELETE") // admin can delete organisation
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings", controllers.CreateOffering).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings", controllers.GetOfferings).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.GetOffering).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
-	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users", controllers.GetOrganisationUsers).Methods("GET")
-	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users/{user_id}", controllers.DeleteOrganisationUser).Methods("DELETE")
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users", controllers.GetOrganisationUsers).Methods("GET")                // admin can receive users for any organisation, any user from organisation can see other members
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users/{user_id}", controllers.DeleteOrganisationUser).Methods("DELETE") // admin can delete any user, org admin can't delete himself
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users/{user_id}", controllers.AddOrganisationUser).Methods("POST")      // admin can add user to organisation
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/invitations", controllers.GetInvitations).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/invitations", controllers.SendInvitation).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/invitations/{user_id}", controllers.DeleteInvitation).Methods("DELETE")
