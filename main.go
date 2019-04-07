@@ -47,6 +47,8 @@ func main() {
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.GetOrganisation).Methods("GET")       // users can get organisation that they belongs to, admin can get any organisation
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.UpdateOrganisation).Methods("PATCH")  // org admins can change all except 'status', admin can change all
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}", controllers.DeleteOrganisation).Methods("DELETE") // admin can delete organisation
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/dashboard", controllers.GetDashboardInfo).Methods("GET")
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/dashboard/users", controllers.GetDashboardUsersInfo).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings", controllers.CreateOffering).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings", controllers.GetOfferings).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.GetOffering).Methods("GET")
