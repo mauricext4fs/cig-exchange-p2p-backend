@@ -53,7 +53,15 @@ var GetOffering = func(w http.ResponseWriter, r *http.Request) {
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
-	cigExchange.Respond(w, offering)
+
+	offeringMMap, apiError := prepareOfferingResponse(offering)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	cigExchange.Respond(w, offeringMMap)
 }
 
 // CreateOffering handles POST organisations/{organisation_id}/offerings endpoint
@@ -102,7 +110,7 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// remove unknow fields from map
-	filteredOfferingMap := cigExchange.FilterUnknownFields(&models.Offering{}, offeringMap)
+	filteredOfferingMap := cigExchange.FilterUnknownFields(&models.Offering{}, offering.GetMultilangFields(), offeringMap)
 
 	// get jsonb fields
 	names := offering.GetMultilangFields()
@@ -136,7 +144,15 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
-	cigExchange.Respond(w, offering)
+
+	offeringMMap, apiError := prepareOfferingResponse(offering)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	cigExchange.Respond(w, offeringMMap)
 }
 
 // UpdateOffering handles PATCH organisations/{organisation_id}/offerings/{offering_id} endpoint
@@ -186,7 +202,7 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// remove unknow fields from map
-	filteredOfferingMap := cigExchange.FilterUnknownFields(&models.Offering{}, offeringMap)
+	filteredOfferingMap := cigExchange.FilterUnknownFields(&models.Offering{}, offering.GetMultilangFields(), offeringMap)
 
 	// get jsonb fields
 	names := offering.GetMultilangFields()
@@ -252,7 +268,14 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cigExchange.Respond(w, existingOffering)
+	offeringMMap, apiError := prepareOfferingResponse(existingOffering)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	cigExchange.Respond(w, offeringMMap)
 }
 
 // DeleteOffering handles DELETE organisations/{organisation_id}/offerings/{offering_id} endpoint
@@ -339,7 +362,19 @@ var GetOfferings = func(w http.ResponseWriter, r *http.Request) {
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
-	cigExchange.Respond(w, offerings)
+
+	offeringsAMap := make([]map[string]interface{}, 0)
+	for _, offering := range offerings {
+		offeringMMap, apiError := prepareOfferingResponse(offering)
+		if apiError != nil {
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+		offeringsAMap = append(offeringsAMap, offeringMMap)
+	}
+
+	cigExchange.Respond(w, offeringsAMap)
 }
 
 // GetAllOfferings handles GET offerings endpoint
@@ -359,26 +394,23 @@ var GetAllOfferings = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// extended response with organisation and org website
-	type offeringsReponse struct {
-		*models.Offering
-		OrganisationName string `json:"organisation"`
-		OrganisationURL  string `json:"organisation_website"`
-	}
-
 	// add organisation name to offerings structs
-	respOfferings := make([]*offeringsReponse, 0)
+	offeringsAMap := make([]map[string]interface{}, 0)
 	for _, offering := range offerings {
 		if offering.IsVisible && offering.Organisation.Status != models.OrganisationStatusUnverified {
-			respOffering := &offeringsReponse{}
-			respOffering.Offering = offering
-			respOffering.OrganisationName = offering.Organisation.Name
-			respOffering.OrganisationURL = offering.Organisation.Website
-			respOfferings = append(respOfferings, respOffering)
+			offeringMMap, apiError := prepareOfferingResponse(offering)
+			if apiError != nil {
+				*apiErrorP = apiError
+				cigExchange.RespondWithAPIError(w, *apiErrorP)
+				return
+			}
+			offeringMMap["organisation"] = offering.Organisation.Name
+			offeringMMap["organisation_website"] = offering.Organisation.Website
+			offeringsAMap = append(offeringsAMap, offeringMMap)
 		}
 	}
 
-	cigExchange.Respond(w, respOfferings)
+	cigExchange.Respond(w, offeringsAMap)
 }
 
 func convertMapToJSONB(offeringMap *map[string]interface{}, fields []string) *cigExchange.APIError {
@@ -407,4 +439,48 @@ func convertMapToJSONB(offeringMap *map[string]interface{}, fields []string) *ci
 		}
 	}
 	return nil
+}
+
+func prepareOfferingResponse(offering *models.Offering) (map[string]interface{}, *cigExchange.APIError) {
+
+	offeringMap := make(map[string]interface{})
+	// marshal to json
+	offeringBytes, err := json.Marshal(offering)
+	if err != nil {
+		return offeringMap, cigExchange.NewJSONEncodingError(err)
+	}
+
+	// fill map
+	err = json.Unmarshal(offeringBytes, &offeringMap)
+	if err != nil {
+		return offeringMap, cigExchange.NewJSONDecodingError(err)
+	}
+
+	// handle multilanguage text
+	for _, name := range offering.GetMultilangFields() {
+		val, ok := offeringMap[name]
+		if !ok {
+			continue
+		}
+		// move jsonb to name_map field
+		offeringMap[name+"_map"] = val
+		// search for 'en' in jsonb
+		offeringMap[name] = ""
+		if val != nil {
+			mapLang, ok := val.(map[string]interface{})
+			if ok {
+				if v, ok := mapLang["en"]; ok {
+					offeringMap[name] = v
+				} else if v, ok := mapLang["fr"]; ok {
+					offeringMap[name] = v
+				} else if v, ok := mapLang["fr"]; ok {
+					offeringMap[name] = v
+				} else if v, ok := mapLang["fr"]; ok {
+					offeringMap[name] = v
+				}
+			}
+		}
+	}
+
+	return offeringMap, nil
 }

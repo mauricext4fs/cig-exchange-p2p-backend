@@ -221,7 +221,7 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// remove unknow fields from map
-	filteredOrganisationMap := cigExchange.FilterUnknownFields(&models.Organisation{}, organisationMap)
+	filteredOrganisationMap := cigExchange.FilterUnknownFields(&models.Organisation{}, []string{}, organisationMap)
 
 	// set the organisation UUID
 	organisation.ID = organisationID

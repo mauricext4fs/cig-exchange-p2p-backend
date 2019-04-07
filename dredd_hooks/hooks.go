@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"cig-exchange-libs/models"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	cigExchange "cig-exchange-libs"
 
@@ -111,6 +111,7 @@ func main() {
 		Type:              make(pq.StringArray, 0),
 		IsVisible:         true,
 		OfferingDirectURL: postgres.Jsonb{RawMessage: metadata},
+		Origin:            postgres.Jsonb{RawMessage: metadata},
 	}
 
 	err = dbClient.Create(&offering).Error
@@ -170,18 +171,9 @@ func main() {
 		}
 
 		// verify that created offerings are present in 'invest/offerings' api call
-		offerings := make([]models.Offering, 0)
-		err := json.Unmarshal([]byte(t.Real.Body), &offerings)
-		if err != nil {
-			t.Fail = fmt.Sprintf("Unable to parse response: %v", err.Error())
+		found := bytes.Contains([]byte(t.Real.Body), []byte(dredd))
+		if found {
 			return
-		}
-
-		for _, offering := range offerings {
-			if strings.Contains(string(offering.Title.RawMessage), `:"`+dredd+`"`) {
-				// we found a match, api works fine
-				return
-			}
 		}
 
 		t.Fail = "Pre-created offering is missing"
@@ -453,29 +445,8 @@ func main() {
 		}
 
 		// verify that created offerings are present in 'p2p/offerings' api call
-		offerings := make([]models.Offering, 0)
-		err := json.Unmarshal([]byte(t.Real.Body), &offerings)
-		if err != nil {
-			t.Fail = fmt.Sprintf("Unable to parse response: %v", err.Error())
-			return
-		}
-
-		p2pFound := false
-		homepageFound := false
-		for _, offering := range offerings {
-			if strings.Contains(string(offering.Title.RawMessage), `:"`+dredd+`"`) {
-				homepageFound = true
-				continue
-			}
-
-			if strings.Contains(string(offering.Title.RawMessage), `:"`+dreddP2P+`"`) {
-				p2pFound = true
-				continue
-			}
-		}
-
-		if p2pFound && homepageFound {
-			// we found a match, api works fine
+		found := bytes.Contains([]byte(t.Real.Body), []byte(dreddP2P))
+		if found {
 			return
 		}
 
