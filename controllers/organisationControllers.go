@@ -504,7 +504,7 @@ var AddOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
 	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeDeleteUser)
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeAddUser)
 	defer cigExchange.PrintAPIError(apiErrorP)
 
 	// get request params
@@ -542,24 +542,123 @@ var AddOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// find OrganizationUser
-	_, apiError = searchOrgUser.Find()
-	if apiError == nil {
+	_, apiErrorTemp := searchOrgUser.Find()
+	if apiErrorTemp == nil {
 		*apiErrorP = cigExchange.NewInvalidFieldError("user_id", "User already belongs to organisation")
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
-	apiError = nil
 
-	searchOrgUser.IsHome = false
-	searchOrgUser.OrganisationRole = models.OrganisationRoleUser
-	searchOrgUser.Status = models.OrganisationStatusUnverified
+	orgUser := models.OrganisationUser{
+		UserID:           userID,
+		OrganisationID:   organisationID,
+		IsHome:           false,
+		OrganisationRole: models.OrganisationRoleUser,
+		Status:           models.OrganisationStatusUnverified,
+	}
 
 	// create OrganisationUser
-	apiError = searchOrgUser.Create()
+	apiError = orgUser.Create()
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 	w.WriteHeader(204)
+}
+
+// GetDashboardInfo handles GET organisations/{organisation_id}/dashboard endpoint
+var GetDashboardInfo = func(w http.ResponseWriter, r *http.Request) {
+
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetDashboard)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
+	// get request params
+	organisationID := mux.Vars(r)["organisation_id"]
+
+	// load context user info
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	*loggedInUserP = loggedInUser
+
+	// check admin
+	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// skip check for admin
+	if userRole != models.UserRoleAdmin {
+		_, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		if apiError != nil {
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+	}
+
+	info, apiError := models.GetOrganisationInfo(organisationID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	cigExchange.Respond(w, info)
+}
+
+// GetDashboardUsersInfo handles GET organisations/{organisation_id}/dashboard/users endpoint
+var GetDashboardUsersInfo = func(w http.ResponseWriter, r *http.Request) {
+
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetDashboard)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
+	// get request params
+	organisationID := mux.Vars(r)["organisation_id"]
+
+	// load context user info
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	*loggedInUserP = loggedInUser
+
+	// check admin
+	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// skip check for admin
+	if userRole != models.UserRoleAdmin {
+		_, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		if apiError != nil {
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+	}
+
+	info, apiError := models.GetOrganisationUsersInfo(organisationID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	cigExchange.Respond(w, info)
 }

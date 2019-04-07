@@ -199,6 +199,31 @@ JWT will be saved as jsonb in 'user_activity.jwt' field.
 + Response 204
 
 
+# Group P2P/Dashboard
+
+## p2p/api/organisations/{organisation}/dashboard [/p2p/api/organisations/{organisation}/dashboard]
+
+### Get organisation info [GET]
+Returns organisation main info.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+
++ Response 200 (application/json)
+    + Attributes (Organisation Info Response)
+
+## p2p/api/organisations/{organisation}/dashboard/users [/p2p/api/organisations/{organisation}/dashboard/users]
+
+### Get organisation users info [GET]
+Returns organisation users info.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+
++ Response 200 (application/json)
+    + Attributes (array[Organisation Users Info Response])
+
+
 # Group P2P/Offerings
 
 ## p2p/api/organisations/{organisation}/offerings [/p2p/api/organisations/{organisation}/offerings]
@@ -530,6 +555,18 @@ Only admin user can delete organisation.
 + `fr`: `url` (string, required) - offering direct url(fr)
 + `it`: `url` (string, required) - offering direct url(it)
 + `de`: `url` (string, required) - offering direct url(de)
+
+### Organisation Info Response
++ `total_offerings`: `5` (number, required) - total offerings
++ `total_users`: `3` (number, required) - total users
++ `total_amount`: `100000` (number, required) - total amount
++ `remaining_amount`: `50000` (number, required) - remaining amount
+
+### Organisation Users Info Response
++ `user_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user UUID
++ `name`: `First Name` (string, required) - user first name
++ `lastname`: `Last Name` (string, required) - user last name
++ `count`: `5` (number, required) - login count
 
 ### Offering Response
 + `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - offering UUID

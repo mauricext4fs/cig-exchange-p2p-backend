@@ -345,6 +345,26 @@ func main() {
 		t.FullPath = "/p2p/api/users/" + userUUID + "/activities"
 	})
 
+	h.Before("P2P/Dashboard > p2p/api/organisations/{organisation}/dashboard > Get organisation info", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/dashboard"
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/dashboard"
+	})
+
+	h.Before("P2P/Dashboard > p2p/api/organisations/{organisation}/dashboard/users > Get organisation users info", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/dashboard/users"
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/dashboard/users"
+	})
+
 	h.Before("P2P/Organisations > p2p/api/organisations > Create organisation", func(t *trans.Transaction) {
 
 		if t.Request == nil {
