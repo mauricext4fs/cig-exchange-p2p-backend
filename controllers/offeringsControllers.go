@@ -473,9 +473,9 @@ func prepareOfferingResponse(offering *models.Offering) (map[string]interface{},
 					offeringMap[name] = v
 				} else if v, ok := mapLang["fr"]; ok {
 					offeringMap[name] = v
-				} else if v, ok := mapLang["fr"]; ok {
+				} else if v, ok := mapLang["it"]; ok {
 					offeringMap[name] = v
-				} else if v, ok := mapLang["fr"]; ok {
+				} else if v, ok := mapLang["de"]; ok {
 					offeringMap[name] = v
 				}
 			}

@@ -50,6 +50,7 @@ func main() {
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/dashboard", controllers.GetDashboardInfo).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/dashboard/users", controllers.GetDashboardUsersInfo).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/dashboard/offerings", controllers.GetDashboardOfferingsBreakdown).Methods("GET")
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/dashboard/clicks", controllers.GetDashboardOfferingsClicks).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings", controllers.CreateOffering).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings", controllers.GetOfferings).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.GetOffering).Methods("GET")
