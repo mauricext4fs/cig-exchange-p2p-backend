@@ -662,3 +662,51 @@ var GetDashboardUsersInfo = func(w http.ResponseWriter, r *http.Request) {
 
 	cigExchange.Respond(w, info)
 }
+
+// GetDashboardOfferingsBreakdown handles GET organisations/{organisation_id}/dashboard/offerings endpoint
+var GetDashboardOfferingsBreakdown = func(w http.ResponseWriter, r *http.Request) {
+
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetDashboard)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
+	// get request params
+	organisationID := mux.Vars(r)["organisation_id"]
+
+	// load context user info
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		*apiErrorP = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	*loggedInUserP = loggedInUser
+
+	// check admin
+	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// skip check for admin
+	if userRole != models.UserRoleAdmin {
+		_, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		if apiError != nil {
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+	}
+
+	info, apiError := models.GetOfferingsTypeBreakdown(organisationID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	cigExchange.Respond(w, info)
+}

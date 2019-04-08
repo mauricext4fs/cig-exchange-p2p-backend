@@ -223,6 +223,16 @@ Returns organisation users info.
 + Response 200 (application/json)
     + Attributes (array[Organisation Users Info Response])
 
+## p2p/api/organisations/{organisation}/dashboard/offerings [/p2p/api/organisations/{organisation}/dashboard/offerings]
+
+### Get organisation offerings breakdown [GET]
+Returns organisation users info.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+
++ Response 200 (application/json)
+    + Attributes (array[Organisation Offerings Type Response])
 
 # Group P2P/Offerings
 
@@ -567,6 +577,10 @@ Only admin user can delete organisation.
 + `name`: `First Name` (string, required) - user first name
 + `lastname`: `Last Name` (string, required) - user last name
 + `count`: `5` (number, required) - login count
+
+### Organisation Offerings Type Response
++ `type`: `type` (string, required) - offering type
++ `count`: `5` (number, required) - type count
 
 ### Offering Response
 + `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - offering UUID
