@@ -32,7 +32,7 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	*loggedInUserP = loggedInUser
 
 	// check admin
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -42,7 +42,7 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// skip check for admin
 	if userRole != models.UserRoleAdmin {
 		// check organisation role
-		_, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			// user don't belong to organisation
 			*apiErrorP = apiError
@@ -86,7 +86,7 @@ var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get user role
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -136,7 +136,7 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	*loggedInUserP = loggedInUser
 
 	// get user role
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -206,7 +206,7 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	*loggedInUserP = loggedInUser
 
 	// check admin
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -216,7 +216,7 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// skip check for admin
 	if userRole != models.UserRoleAdmin {
 		// check organisation role
-		orgUserRole, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		orgUserRole, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			// user don't belong to organisation
 			*apiErrorP = apiError
@@ -316,7 +316,7 @@ var DeleteOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	*loggedInUserP = loggedInUser
 
 	// get user role and check user and organisation id
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -388,7 +388,7 @@ var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 	*loggedInUserP = loggedInUser
 
 	// check admin
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -398,7 +398,7 @@ var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 	// skip check for admin
 	if userRole != models.UserRoleAdmin {
 		// check organisation role
-		_, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			// user don't belong to organisation
 			*apiErrorP = apiError
@@ -454,7 +454,7 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check admin
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -464,7 +464,7 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	// skip check for admin
 	if userRole != models.UserRoleAdmin {
 		// check organisation role
-		orgUserRole, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		orgUserRole, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			// user don't belong to organisation
 			*apiErrorP = apiError
@@ -521,7 +521,7 @@ var AddOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	*loggedInUserP = loggedInUser
 
 	// check admin
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -588,7 +588,7 @@ var GetDashboardInfo = func(w http.ResponseWriter, r *http.Request) {
 	*loggedInUserP = loggedInUser
 
 	// check admin
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -597,7 +597,7 @@ var GetDashboardInfo = func(w http.ResponseWriter, r *http.Request) {
 
 	// skip check for admin
 	if userRole != models.UserRoleAdmin {
-		_, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			*apiErrorP = apiError
 			cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -636,7 +636,7 @@ var GetDashboardUsersInfo = func(w http.ResponseWriter, r *http.Request) {
 	*loggedInUserP = loggedInUser
 
 	// check admin
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -645,7 +645,7 @@ var GetDashboardUsersInfo = func(w http.ResponseWriter, r *http.Request) {
 
 	// skip check for admin
 	if userRole != models.UserRoleAdmin {
-		_, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			*apiErrorP = apiError
 			cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -684,7 +684,7 @@ var GetDashboardOfferingsBreakdown = func(w http.ResponseWriter, r *http.Request
 	*loggedInUserP = loggedInUser
 
 	// check admin
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -693,7 +693,7 @@ var GetDashboardOfferingsBreakdown = func(w http.ResponseWriter, r *http.Request
 
 	// skip check for admin
 	if userRole != models.UserRoleAdmin {
-		_, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			*apiErrorP = apiError
 			cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -732,7 +732,7 @@ var GetDashboardOfferingsClicks = func(w http.ResponseWriter, r *http.Request) {
 	*loggedInUserP = loggedInUser
 
 	// check admin
-	userRole, apiError := auth.GetUserRole(loggedInUser.UserUUID)
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -741,7 +741,7 @@ var GetDashboardOfferingsClicks = func(w http.ResponseWriter, r *http.Request) {
 
 	// skip check for admin
 	if userRole != models.UserRoleAdmin {
-		_, apiError := auth.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			*apiErrorP = apiError
 			cigExchange.RespondWithAPIError(w, *apiErrorP)
