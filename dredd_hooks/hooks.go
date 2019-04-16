@@ -88,11 +88,15 @@ func main() {
 		}
 	}
 
+	metadata := json.RawMessage(`{"en":"url","fr":"url","it":"url","de":"url"}`)
+	titleMetadata := json.RawMessage(`{"en":"` + dredd + `"}`)
+
 	// create 'dredd' organisation
 	org := models.Organisation{
-		Name:         dredd,
-		ReferenceKey: dredd,
-		Status:       models.OrganisationStatusVerified,
+		Name:                      dredd,
+		ReferenceKey:              dredd,
+		Status:                    models.OrganisationStatusVerified,
+		OfferingRatingDescription: postgres.Jsonb{RawMessage: titleMetadata},
 	}
 	err := dbClient.Create(&org).Error
 	if err != nil {
@@ -100,9 +104,6 @@ func main() {
 		fmt.Println(err.Error())
 	}
 	orgUUID = org.ID
-
-	metadata := json.RawMessage(`{"en":"url","fr":"url","it":"url","de":"url"}`)
-	titleMetadata := json.RawMessage(`{"en":"` + dredd + `"}`)
 
 	// create some offerings belonging to 'dredd' organization
 	offering := models.Offering{

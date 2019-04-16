@@ -59,7 +59,15 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cigExchange.Respond(w, organisation)
+	// add multilang fields
+	orgMap, apiError := cigExchange.PrepareResponseForMultilangModel(organisation)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	cigExchange.Respond(w, orgMap)
 }
 
 // GetOrganisations handles GET organisations endpoint
@@ -115,7 +123,19 @@ var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cigExchange.Respond(w, organisations)
+	// add multilang fields
+	orgsAMap := make([]map[string]interface{}, 0)
+	for _, organisation := range organisations {
+		orgMMap, apiError := cigExchange.PrepareResponseForMultilangModel(organisation)
+		if apiError != nil {
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+		orgsAMap = append(orgsAMap, orgMMap)
+	}
+
+	cigExchange.Respond(w, orgsAMap)
 }
 
 // CreateOrganisation handles POST organisations endpoint
@@ -182,7 +202,15 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cigExchange.Respond(w, organisation)
+	// add multilang fields
+	orgMap, apiError := cigExchange.PrepareResponseForMultilangModel(organisation)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	cigExchange.Respond(w, orgMap)
 }
 
 // UpdateOrganisation handles PATCH organisations/{organisation_id} endpoint
@@ -292,7 +320,15 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cigExchange.Respond(w, existingOrganisation)
+	// add multilang fields
+	orgMap, apiError := cigExchange.PrepareResponseForMultilangModel(existingOrganisation)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	cigExchange.Respond(w, orgMap)
 }
 
 // DeleteOrganisation handles DELETE organisations/{organisation_id} endpoint
