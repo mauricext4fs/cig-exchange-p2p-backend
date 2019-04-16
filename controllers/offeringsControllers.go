@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm/dialects/postgres"
 )
 
 // GetOffering handles GET organisations/{organisation_id}/offerings/{offering_id} endpoint
@@ -54,7 +53,8 @@ var GetOffering = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offeringMMap, apiError := prepareOfferingResponse(offering)
+	// add multilang fields
+	offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(offering)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -112,9 +112,8 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// remove unknow fields from map
 	filteredOfferingMap := cigExchange.FilterUnknownFields(&models.Offering{}, offering.GetMultilangFields(), offeringMap)
 
-	// get jsonb fields
-	names := offering.GetMultilangFields()
-	convertMapToJSONB(&filteredOfferingMap, names)
+	// convert multilang fields to jsonb
+	cigExchange.ConvertRequestMapToJSONB(&filteredOfferingMap, offering)
 
 	jsonBytes, err := json.Marshal(filteredOfferingMap)
 	if err != nil {
@@ -145,7 +144,8 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offeringMMap, apiError := prepareOfferingResponse(offering)
+	// add multilang fields
+	offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(offering)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -204,9 +204,8 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// remove unknow fields from map
 	filteredOfferingMap := cigExchange.FilterUnknownFields(&models.Offering{}, offering.GetMultilangFields(), offeringMap)
 
-	// get jsonb fields
-	names := offering.GetMultilangFields()
-	convertMapToJSONB(&filteredOfferingMap, names)
+	// convert multilang fields to jsonb
+	cigExchange.ConvertRequestMapToJSONB(&filteredOfferingMap, offering)
 
 	jsonBytes, err := json.Marshal(filteredOfferingMap)
 	if err != nil {
@@ -268,7 +267,8 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offeringMMap, apiError := prepareOfferingResponse(existingOffering)
+	// add multilang fields
+	offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(existingOffering)
 	if apiError != nil {
 		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -363,9 +363,10 @@ var GetOfferings = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// add multilang fields
 	offeringsAMap := make([]map[string]interface{}, 0)
 	for _, offering := range offerings {
-		offeringMMap, apiError := prepareOfferingResponse(offering)
+		offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(offering)
 		if apiError != nil {
 			*apiErrorP = apiError
 			cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -398,7 +399,8 @@ var GetAllOfferings = func(w http.ResponseWriter, r *http.Request) {
 	offeringsAMap := make([]map[string]interface{}, 0)
 	for _, offering := range offerings {
 		if offering.IsVisible && offering.Organisation.Status != models.OrganisationStatusUnverified {
-			offeringMMap, apiError := prepareOfferingResponse(offering)
+			// add multilang fields
+			offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(offering)
 			if apiError != nil {
 				*apiErrorP = apiError
 				cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -411,76 +413,4 @@ var GetAllOfferings = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cigExchange.Respond(w, offeringsAMap)
-}
-
-func convertMapToJSONB(offeringMap *map[string]interface{}, fields []string) *cigExchange.APIError {
-
-	localMap := *offeringMap
-
-	for _, name := range fields {
-		val, ok := localMap[name]
-		if !ok {
-			continue
-		}
-		switch v := val.(type) {
-		case string:
-			strVal := `{"en":"` + v + `"}`
-			metadata := json.RawMessage(strVal)
-			localMap[name] = postgres.Jsonb{RawMessage: metadata}
-		case int32, int64:
-			return cigExchange.NewInvalidFieldError(name, "Field '"+name+"' has invalid type")
-		default:
-			mapB, err := json.Marshal(v)
-			if err != nil {
-				return cigExchange.NewJSONEncodingError(err)
-			}
-			metadata := json.RawMessage(mapB)
-			localMap[name] = postgres.Jsonb{RawMessage: metadata}
-		}
-	}
-	return nil
-}
-
-func prepareOfferingResponse(offering *models.Offering) (map[string]interface{}, *cigExchange.APIError) {
-
-	offeringMap := make(map[string]interface{})
-	// marshal to json
-	offeringBytes, err := json.Marshal(offering)
-	if err != nil {
-		return offeringMap, cigExchange.NewJSONEncodingError(err)
-	}
-
-	// fill map
-	err = json.Unmarshal(offeringBytes, &offeringMap)
-	if err != nil {
-		return offeringMap, cigExchange.NewJSONDecodingError(err)
-	}
-
-	// handle multilanguage text
-	for _, name := range offering.GetMultilangFields() {
-		val, ok := offeringMap[name]
-		if !ok {
-			continue
-		}
-		// move jsonb to name_map field
-		offeringMap[name+"_map"] = val
-		// search for 'en' in jsonb
-		offeringMap[name] = ""
-		if val != nil {
-			mapLang, ok := val.(map[string]interface{})
-			if ok {
-				if v, ok := mapLang["en"]; ok {
-					offeringMap[name] = v
-				} else if v, ok := mapLang["fr"]; ok {
-					offeringMap[name] = v
-				} else if v, ok := mapLang["it"]; ok {
-					offeringMap[name] = v
-				} else if v, ok := mapLang["de"]; ok {
-					offeringMap[name] = v
-				}
-			}
-		}
-	}
-
-	return offeringMap, nil
 }
