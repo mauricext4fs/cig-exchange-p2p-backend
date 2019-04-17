@@ -123,13 +123,13 @@ func main() {
 
 	// add 'dredd4' user
 	dredd4 := &models.User{
-		Sex:            "male",
-		Role:           models.UserRoleUser,
-		Name:           "dredd4",
-		LastName:       "dredd4",
-		LoginEmailUUID: nil,
-		LoginPhoneUUID: nil,
-		Status:         models.UserStatusVerified,
+		Sex:        "male",
+		Role:       models.UserRoleUser,
+		Name:       "dredd4",
+		LastName:   "dredd4",
+		LoginEmail: &models.Contact{Type: models.ContactTypeEmail, Level: models.ContactLevelPrimary, Value1: "dev+test+dredd@cig-exchange.ch"},
+		LoginPhone: &models.Contact{Type: models.ContactTypePhone, Level: models.ContactLevelSecondary, Value1: "+1", Value2: "333333333"},
+		Status:     models.UserStatusVerified,
 	}
 	err = dbClient.Create(&dredd4).Error
 	if err != nil {
