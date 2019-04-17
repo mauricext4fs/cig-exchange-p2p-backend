@@ -13,7 +13,7 @@ import (
 )
 
 type invitationRequest struct {
-	Sex              string `json:"sex"`
+	Title            string `json:"title"`
 	Name             string `json:"name"`
 	LastName         string `json:"lastname"`
 	Email            string `json:"email"`
