@@ -123,7 +123,7 @@ func main() {
 
 	// add 'dredd4' user
 	dredd4 := &models.User{
-		Sex:        "male",
+		Title:      "Mr",
 		Role:       models.UserRoleUser,
 		Name:       "dredd4",
 		LastName:   "dredd4",
