@@ -115,7 +115,7 @@ var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// remove unknow fields from map
-	filteredUserMap := cigExchange.FilterUnknownFields(&models.User{}, []string{}, userMap)
+	filteredUserMap := cigExchange.FilterUnknownFields(user, userMap)
 
 	// set the user UUID
 	user.ID = userID

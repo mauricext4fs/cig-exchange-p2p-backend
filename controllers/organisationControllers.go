@@ -171,8 +171,30 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	organisation := &models.Organisation{}
-	// decode organisation object from request body
-	err = json.NewDecoder(r.Body).Decode(organisation)
+	organisationMap := make(map[string]interface{})
+	// decode map[string]interface from request body
+	err = json.NewDecoder(r.Body).Decode(&organisationMap)
+	if err != nil {
+		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// remove unknow fields from map
+	filteredOrganisationMap := cigExchange.FilterUnknownFields(organisation, organisationMap)
+
+	// convert multilang fields to jsonb
+	cigExchange.ConvertRequestMapToJSONB(&filteredOrganisationMap, organisation)
+
+	jsonBytes, err := json.Marshal(filteredOrganisationMap)
+	if err != nil {
+		*apiErrorP = cigExchange.NewJSONEncodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// decode offering object from request body
+	err = json.Unmarshal(jsonBytes, organisation)
 	if err != nil {
 		*apiErrorP = cigExchange.NewJSONDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
@@ -268,14 +290,6 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	organisation := &models.Organisation{}
-	// decode organisation object from request body
-	err = json.Unmarshal(bytes, organisation)
-	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
-		return
-	}
-
 	organisationMap := make(map[string]interface{})
 	// decode map[string]interface from request body
 	err = json.Unmarshal(bytes, &organisationMap)
@@ -286,7 +300,25 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// remove unknow fields from map
-	filteredOrganisationMap := cigExchange.FilterUnknownFields(&models.Organisation{}, []string{}, organisationMap)
+	filteredOrganisationMap := cigExchange.FilterUnknownFields(organisation, organisationMap)
+
+	// convert multilang fields to jsonb
+	cigExchange.ConvertRequestMapToJSONB(&filteredOrganisationMap, organisation)
+
+	jsonBytes, err := json.Marshal(filteredOrganisationMap)
+	if err != nil {
+		*apiErrorP = cigExchange.NewJSONEncodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// decode offering object from request body
+	err = json.Unmarshal(jsonBytes, organisation)
+	if err != nil {
+		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
 
 	// set the organisation UUID
 	organisation.ID = organisationID

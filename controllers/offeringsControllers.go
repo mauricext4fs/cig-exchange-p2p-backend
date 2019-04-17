@@ -110,7 +110,7 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// remove unknow fields from map
-	filteredOfferingMap := cigExchange.FilterUnknownFields(&models.Offering{}, offering.GetMultilangFields(), offeringMap)
+	filteredOfferingMap := cigExchange.FilterUnknownFields(offering, offeringMap)
 
 	// convert multilang fields to jsonb
 	cigExchange.ConvertRequestMapToJSONB(&filteredOfferingMap, offering)
@@ -202,7 +202,7 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// remove unknow fields from map
-	filteredOfferingMap := cigExchange.FilterUnknownFields(&models.Offering{}, offering.GetMultilangFields(), offeringMap)
+	filteredOfferingMap := cigExchange.FilterUnknownFields(offering, offeringMap)
 
 	// convert multilang fields to jsonb
 	cigExchange.ConvertRequestMapToJSONB(&filteredOfferingMap, offering)
