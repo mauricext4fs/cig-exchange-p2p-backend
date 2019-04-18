@@ -112,7 +112,7 @@ func main() {
 		Type:              make(pq.StringArray, 0),
 		IsVisible:         true,
 		OfferingDirectURL: postgres.Jsonb{RawMessage: metadata},
-		Origin:            postgres.Jsonb{RawMessage: metadata},
+		Origin:            "origin",
 	}
 
 	err = dbClient.Create(&offering).Error
