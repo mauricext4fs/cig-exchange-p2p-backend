@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -66,6 +67,14 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// check that organisation exists
+	inviter, apiError := models.GetUser(loggedInUser.UserUUID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
 	userReq.Platform = auth.PlatformP2P
 
 	user := userReq.ConvertRequestToUser()
@@ -95,7 +104,17 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 
 	// send welcome email async
 	go func() {
-		err = cigExchange.SendEmail(cigExchange.EmailTypePinCode, userReq.Email, code)
+		// url parameters
+		params := url.Values{}
+		params.Add("email", userReq.Email)
+		// email parameters
+		parameters := map[string]string{
+			"ACCEPT_URL":           cigExchange.GetServerURL() + "/invest/en/accept?" + params.Encode(),
+			"INVITE_FIRST_NAME":    userReq.Name,
+			"INVITER_NAME":         inviter.Name + " " + inviter.LastName,
+			"INVITER_ORGANISATION": org.Name,
+		}
+		err = cigExchange.SendEmail(cigExchange.EmailTypeInvitation, userReq.Email, parameters)
 		if err != nil {
 			fmt.Println("InviteUser: email sending error:")
 			fmt.Println(err.Error())

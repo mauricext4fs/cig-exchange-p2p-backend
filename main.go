@@ -3,6 +3,7 @@ package main
 import (
 	"cig-exchange-libs/auth"
 	"cig-exchange-p2p-backend/controllers"
+	"cig-exchange-p2p-backend/tasks"
 	"fmt"
 	"net/http"
 	"os"
@@ -83,7 +84,11 @@ func main() {
 
 	fmt.Println("Server listening on port: " + port)
 
-	err := http.ListenAndServe(":"+port, router) //Launch the app, visit localhost:8000/api
+	// shedule tasks
+	tasks.ScheduleTasks()
+
+	// launch the app
+	err := http.ListenAndServe(":"+port, router)
 	if err != nil {
 		fmt.Print(err)
 	}
