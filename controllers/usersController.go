@@ -100,7 +100,7 @@ var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 	// decode user object from request body
 	err = json.Unmarshal(bytes, user)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -109,7 +109,7 @@ var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]interface from request body
 	err = json.Unmarshal(bytes, &userMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}

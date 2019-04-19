@@ -71,7 +71,7 @@ var CreateUserActivity = func(w http.ResponseWriter, r *http.Request) {
 	// decode organisation object from request body
 	err = json.NewDecoder(r.Body).Decode(&info)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeCreateUserActivity)
 		return

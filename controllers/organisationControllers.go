@@ -175,7 +175,7 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]interface from request body
 	err = json.NewDecoder(r.Body).Decode(&organisationMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -188,7 +188,7 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytes, err := json.Marshal(filteredOrganisationMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONEncodingError(err)
+		*apiErrorP = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -196,7 +196,7 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// decode offering object from request body
 	err = json.Unmarshal(jsonBytes, organisation)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -294,7 +294,7 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]interface from request body
 	err = json.Unmarshal(bytes, &organisationMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -307,7 +307,7 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytes, err := json.Marshal(filteredOrganisationMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONEncodingError(err)
+		*apiErrorP = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -315,7 +315,7 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// decode offering object from request body
 	err = json.Unmarshal(jsonBytes, organisation)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}

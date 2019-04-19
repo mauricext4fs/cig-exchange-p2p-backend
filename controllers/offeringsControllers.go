@@ -104,7 +104,7 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]interface from request body
 	err = json.Unmarshal(bytes, &offeringMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -117,7 +117,7 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytes, err := json.Marshal(filteredOfferingMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONEncodingError(err)
+		*apiErrorP = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -125,7 +125,7 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// decode offering object from request body
 	err = json.Unmarshal(jsonBytes, offering)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -196,7 +196,7 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]interface from request body
 	err = json.Unmarshal(bytes, &offeringMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -209,7 +209,7 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytes, err := json.Marshal(filteredOfferingMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONEncodingError(err)
+		*apiErrorP = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
@@ -217,7 +217,7 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// decode offering object from request body
 	err = json.Unmarshal(jsonBytes, offering)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}

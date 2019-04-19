@@ -28,7 +28,7 @@ var SendContactUsEmail = func(w http.ResponseWriter, r *http.Request) {
 	// decode contact us info from request body
 	err := json.NewDecoder(r.Body).Decode(contactInfo)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}

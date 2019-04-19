@@ -54,7 +54,7 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 	// decode user object from request body
 	err = json.NewDecoder(r.Body).Decode(userReq)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONDecodingError(err)
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
