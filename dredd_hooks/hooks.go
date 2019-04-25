@@ -32,6 +32,7 @@ func main() {
 	userUUID := ""
 	userJWT := ""
 	orgUUID := ""
+	mediaUUID := ""
 
 	// save created record UUID here
 	createdUUID := ""
@@ -563,6 +564,61 @@ func main() {
 
 		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/offerings/" + offeringID + "/media/upload"
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/offerings/" + offeringID + "/media/upload"
+	})
+
+	h.After("P2P/Offering Media > p2p/api/organisations/{organisation}/offerings/{offering}/media/upload > Upload offering media", func(t *trans.Transaction) {
+		// happens when api is down
+		if t.Real == nil {
+			return
+		}
+
+		mediaUUID = getBodyValue(&t.Real.Body, "id")
+		if len(mediaUUID) == 0 {
+			t.Fail = "Unable to save offering media ID"
+			return
+		}
+	})
+
+	h.Before("P2P/Offering Media > p2p/api/organisations/{organisation}/offerings/{offering}/media/{media} > Update offering media", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Organisation UUID missing"
+			return
+		}
+		if len(offeringID) == 0 {
+			t.Fail = "Created offering UUID missing"
+			return
+		}
+		if len(mediaUUID) == 0 {
+			t.Fail = "Created offering media UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/offerings/" + offeringID + "/media/" + mediaUUID
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/offerings/" + offeringID + "/media/" + mediaUUID
+	})
+
+	h.Before("P2P/Offering Media > p2p/api/organisations/{organisation}/offerings/{offering}/media/{media} > Delete offering media", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Organisation UUID missing"
+			return
+		}
+		if len(offeringID) == 0 {
+			t.Fail = "Created offering UUID missing"
+			return
+		}
+		if len(mediaUUID) == 0 {
+			t.Fail = "Created offering media UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/offerings/" + offeringID + "/media/" + mediaUUID
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/offerings/" + offeringID + "/media/" + mediaUUID
 	})
 
 	h.Before("P2P/Invitations > p2p/api/organisations/{organisation}/invitations > Send invitation", func(t *trans.Transaction) {

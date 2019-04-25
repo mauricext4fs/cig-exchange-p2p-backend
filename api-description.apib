@@ -324,7 +324,33 @@ Return media object on success.
         Raw media bytes
 
 + Response 200 (application/json)
-    + Attributes (Media Response)
+    + Attributes (Offering Media Response)
+
+## p2p/api/organisations/{organisation}/offerings/{offering}/media/{media} [/p2p/api/organisations/{organisation}/offerings/{offering}/media/{media}]
+
+### Update offering media [PATCH]
+Update offering media meta properties.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + offering: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+    + media: `fdb283d4-7341-1111-0000-371d22d27cfc` (string, required) - UUID of the media
+
++ Request (application/json)
+    + Attributes (Offering Media Request)
+
++ Response 200 (application/json)
+    + Attributes (Offering Media Response)
+
+### Delete offering media [DELETE]
+Delete offering media.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + offering: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+    + media: `fdb283d4-7341-1111-0000-371d22d27cfc` (string, required) - UUID of the media
+
++ Response 204
 
 
 # Group P2P/Invitations
@@ -748,5 +774,23 @@ Only admin user can delete organisation.
 + `email`: `email` (string, required) - user email
 + `last_login`: `2018-12-20T12:18:32+00:00` (string) - last login
 
-### Media Response
+### Offering Media Request
++ `type`: `media type` (string) - media object type
++ `subtype`: `media subtype` (string) - media object subtype
++ `title`: `title` (string) - media object title
++ `mime_type`: `image/png` (string) - media mime type
++ `file_extension`: `png` (string) - media file extension
++ `description`: `description` (string) - media description
+
+### Offering Media Response
 + `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - media object uuid
++ `type`: `media type` (string, required) - media object type
++ `subtype`: `media subtype` (string) - media object subtype
++ `title`: `title` (string, required) - media object title
++ `url`: `relative_url` (string, required) - media relative URL
++ `mime_type`: `image/png` (string, required) - media mime type
++ `file_extension`: `png` (string, required) - media file extension
++ `file_size`: `100` (number, required) - media file size in bytes
++ `description`: `description` (string) - media description
++ `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - media creation timestamp
++ `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - media updated timestamp
