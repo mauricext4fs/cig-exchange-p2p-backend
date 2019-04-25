@@ -74,6 +74,7 @@ func main() {
 	router.HandleFunc(tradingBaseURI+"users/signin", userAPI.GetUserHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/send_otp", userAPI.SendCodeHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/verify_otp", userAPI.VerifyCodeHandler).Methods("POST")
+	router.HandleFunc(tradingBaseURI+"users/accept-invitation", controllers.AcceptInvitation).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"organisations/signup", userAPI.CreateOrganisationHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"offerings", controllers.GetAllOfferings).Methods("GET")
 	router.HandleFunc(tradingBaseURI+"offerings/{offering_id}/media", controllers.GetOfferingMedia).Methods("GET")
