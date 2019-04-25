@@ -307,6 +307,26 @@ Deletes a specific Offering object.
 + Response 204
 
 
+# Group P2P/Offering Media
+
+## p2p/api/organisations/{organisation}/offerings/{offering}/media/upload [/p2p/api/organisations/{organisation}/offerings/{offering}/media/upload]
+
+### Upload offering media [PUT]
+Upload a media file for a specific offering.
+Return media object on success.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + offering: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+
++ Request
+
+        Raw media bytes
+
++ Response 200 (application/json)
+    + Attributes (Media Response)
+
+
 # Group P2P/Invitations
 
 ## p2p/api/organisations/{organisation}/invitations [/p2p/api/organisations/{organisation}/invitations]
@@ -727,3 +747,6 @@ Only admin user can delete organisation.
 + `title`: `Mr` (string, required) - user title
 + `email`: `email` (string, required) - user email
 + `last_login`: `2018-12-20T12:18:32+00:00` (string) - last login
+
+### Media Response
++ `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - media object uuid

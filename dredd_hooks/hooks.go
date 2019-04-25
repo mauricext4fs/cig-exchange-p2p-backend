@@ -93,9 +93,9 @@ func main() {
 
 	// create 'dredd' organisation
 	org := models.Organisation{
-		Name:                      dredd,
-		ReferenceKey:              dredd,
-		Status:                    models.OrganisationStatusVerified,
+		Name:         dredd,
+		ReferenceKey: dredd,
+		Status:       models.OrganisationStatusVerified,
 		OfferingRatingDescription: postgres.Jsonb{RawMessage: titleMetadata},
 	}
 	err := dbClient.Create(&org).Error
@@ -120,6 +120,7 @@ func main() {
 		fmt.Println("ERROR: prepareDatabase: create offering:")
 		fmt.Println(err.Error())
 	}
+	offeringID := offering.ID
 
 	// add 'dredd4' user
 	dredd4 := &models.User{
@@ -545,6 +546,23 @@ func main() {
 
 		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/offerings/" + createdUUID
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/offerings/" + createdUUID
+	})
+
+	h.Before("P2P/Offering Media > p2p/api/organisations/{organisation}/offerings/{offering}/media/upload > Upload offering media", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Organisation UUID missing"
+			return
+		}
+		if len(offeringID) == 0 {
+			t.Fail = "Created offering UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/offerings/" + offeringID + "/media/upload"
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/offerings/" + offeringID + "/media/upload"
 	})
 
 	h.Before("P2P/Invitations > p2p/api/organisations/{organisation}/invitations > Send invitation", func(t *trans.Transaction) {
