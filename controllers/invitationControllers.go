@@ -367,4 +367,17 @@ var AcceptInvitation = func(w http.ResponseWriter, r *http.Request) {
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
+
+	// reply with JWT token
+	tokenString, apiError := auth.GenerateJWTString(orgUser.UserID, orgUser.OrganisationID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	resp := &auth.JwtResponse{
+		JWT: tokenString,
+	}
+	cigExchange.Respond(w, resp)
 }
