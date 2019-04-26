@@ -107,13 +107,18 @@ func main() {
 	orgUUID = org.ID
 
 	// create some offerings belonging to 'dredd' organization
+	amount := float64(100)
+	taken := float64(50)
 	offering := models.Offering{
-		Title:             postgres.Jsonb{RawMessage: titleMetadata},
-		OrganisationID:    orgUUID,
-		Type:              make(pq.StringArray, 0),
-		IsVisible:         true,
-		OfferingDirectURL: postgres.Jsonb{RawMessage: metadata},
-		Origin:            "origin",
+		Title:              postgres.Jsonb{RawMessage: titleMetadata},
+		OrganisationID:     orgUUID,
+		Type:               make(pq.StringArray, 0),
+		IsVisible:          true,
+		OfferingDirectURL:  postgres.Jsonb{RawMessage: metadata},
+		Origin:             "origin",
+		Amount:             &amount,
+		Remaining:          float64(50),
+		AmountAlreadyTaken: &taken,
 	}
 
 	err = dbClient.Create(&offering).Error
@@ -627,6 +632,8 @@ func main() {
 		}
 
 		setBodyValue(&t.Request.Body, "name", dredd3)
+		//setBodyValue(&t.Request.Body, "email", "dev+test+invitation@cig-exchange.ch")
+		//setBodyValue(&t.Request.Body, "phone_number", "2222222222")
 
 		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/invitations"
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/invitations"

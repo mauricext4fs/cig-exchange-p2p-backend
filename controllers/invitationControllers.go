@@ -102,7 +102,7 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 		OrganisationID: organisationID,
 	}
 	_, apiError = orgUserWhere.Find()
-	if apiError != nil { // expecting error, no error means link exists
+	if apiError == nil { // expecting error, no error means link exists
 		apiError = &cigExchange.APIError{}
 		apiError.SetErrorType(cigExchange.ErrorTypeUnprocessableEntity)
 		apiError.NewNestedError(cigExchange.ReasonInvitationAlreadyExists, cigExchange.ReasonInvitationAlreadyExists)
