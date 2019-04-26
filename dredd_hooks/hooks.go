@@ -37,6 +37,7 @@ func main() {
 	// save created record UUID here
 	createdUUID := ""
 	invitationUUID := ""
+	invitationCode := ""
 
 	// prepare the database:
 	// 1. delete 'dredd' users if it exists (first name  = 'dredd', 'dredd2', 'dredd3', 'dredd4')
@@ -649,6 +650,11 @@ func main() {
 		invitationUUID = getBodyValue(&t.Real.Body, "uuid")
 		if len(invitationUUID) == 0 {
 			t.Fail = "Unable to save invitation UUID"
+			return
+		}
+		invitationCode = getBodyValue(&t.Real.Body, "code")
+		if len(invitationCode) == 0 {
+			t.Fail = "Unable to save invitation code"
 			return
 		}
 	})
