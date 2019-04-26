@@ -135,7 +135,7 @@ func main() {
 		Role:       models.UserRoleUser,
 		Name:       "dredd4",
 		LastName:   "dredd4",
-		LoginEmail: &models.Contact{Type: models.ContactTypeEmail, Level: models.ContactLevelPrimary, Value1: "dev+test+dredd@cig-exchange.ch"},
+		LoginEmail: &models.Contact{Type: models.ContactTypeEmail, Level: models.ContactLevelPrimary, Value1: "blackhole+dev+test+dredd@cig-exchange.ch"},
 		LoginPhone: &models.Contact{Type: models.ContactTypePhone, Level: models.ContactLevelSecondary, Value1: "+1", Value2: "333333333"},
 		Status:     models.UserStatusVerified,
 	}
@@ -633,8 +633,6 @@ func main() {
 		}
 
 		setBodyValue(&t.Request.Body, "name", dredd3)
-		//setBodyValue(&t.Request.Body, "email", "dev+test+invitation@cig-exchange.ch")
-		//setBodyValue(&t.Request.Body, "phone_number", "2222222222")
 
 		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/invitations"
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/invitations"
