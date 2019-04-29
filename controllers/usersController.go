@@ -15,9 +15,9 @@ import (
 var GetUser = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetUser)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetUser)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	userID := mux.Vars(r)["user_id"]
@@ -25,30 +25,30 @@ var GetUser = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check user id
 	if len(userID) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("user_id", "UserID is invalid")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewInvalidFieldError("user_id", "UserID is invalid")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if userID != loggedInUser.UserUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the user")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the user")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// return user object
 	existingUser, apiError := models.GetUser(userID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -59,9 +59,9 @@ var GetUser = func(w http.ResponseWriter, r *http.Request) {
 var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeUpdateUser)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeUpdateUser)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	userID := mux.Vars(r)["user_id"]
@@ -69,30 +69,30 @@ var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check user id
 	if len(userID) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("user_id", "UserID is invalid")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewInvalidFieldError("user_id", "UserID is invalid")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if userID != loggedInUser.UserUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the user")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the user")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// read request body
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		*apiErrorP = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewReadError("Failed to read request body", err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -100,8 +100,8 @@ var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 	// decode user object from request body
 	err = json.Unmarshal(bytes, user)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -109,8 +109,8 @@ var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]interface from request body
 	err = json.Unmarshal(bytes, &userMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -124,16 +124,16 @@ var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 	// update user
 	apiError := user.Update(filteredUserMap)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// return updated user
 	existingUser, apiError := models.GetUser(userID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 

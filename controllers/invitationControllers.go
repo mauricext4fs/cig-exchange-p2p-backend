@@ -26,9 +26,9 @@ type invitationRequest struct {
 var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeCreateInvitation)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeCreateInvitation)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -36,16 +36,16 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check permissions
 	if organisationID != loggedInUser.OrganisationUUID || len(organisationID) == 0 {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -54,24 +54,24 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 	// decode user object from request body
 	err = json.NewDecoder(r.Body).Decode(userReq)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// check that organisation exists
 	org, apiError := models.GetOrganisation(organisationID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, apiError)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// check that user who invites exists
 	inviter, apiError := models.GetUser(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, apiError)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -82,8 +82,8 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 	// check if user exist
 	invitedUser, apiError := models.GetUserByEmail(userReq.Email, true)
 	if err != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, apiError)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 	// invited user can be nill, which means it doesn't exist
@@ -91,8 +91,8 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 		// create new user w/o reference key, we will create organisation link manually
 		invitedUser, apiError = models.CreateUser(user, "")
 		if apiError != nil {
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, apiError)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
@@ -107,8 +107,8 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 		apiError = &cigExchange.APIError{}
 		apiError.SetErrorType(cigExchange.ErrorTypeUnprocessableEntity)
 		apiError.NewNestedError(cigExchange.ReasonInvitationAlreadyExists, cigExchange.ReasonInvitationAlreadyExists)
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -122,8 +122,8 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 	}
 	apiError = orgUser.Create()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, apiError)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -132,8 +132,8 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 	expiration := 30 * 24 * time.Hour
 	redisCmd := cigExchange.GetRedis().Set(rediskey, orgUser.ID, expiration)
 	if redisCmd.Err() != nil {
-		*apiErrorP = cigExchange.NewRedisError("Set invitation accept code failure", redisCmd.Err())
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRedisError("Set invitation accept code failure", redisCmd.Err())
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -167,9 +167,9 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 var GetInvitations = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetInvitations)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetInvitations)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -177,31 +177,30 @@ var GetInvitations = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check organisation id
 	if len(organisationID) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if organisationID != loggedInUser.OrganisationUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		fmt.Println((*apiErrorP).ToString())
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// query invited users from db
 	users, apiError := models.GetUsersForOrganisation(organisationID, true)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -212,9 +211,9 @@ var GetInvitations = func(w http.ResponseWriter, r *http.Request) {
 var DeleteInvitation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeDeleteInvitation)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeDeleteInvitation)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -223,29 +222,29 @@ var DeleteInvitation = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check organisation id
 	if len(organisationID) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewInvalidFieldError("organization_id", "OrganisationID is invalid")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// check user id
 	if len(userID) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("user_id", "UserID is invalid")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewInvalidFieldError("user_id", "UserID is invalid")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if organisationID != loggedInUser.OrganisationUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -256,23 +255,23 @@ var DeleteInvitation = func(w http.ResponseWriter, r *http.Request) {
 	// query user organisationUser from db
 	orgUser, apiError := searchOrgUser.Find()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// check user status
 	if orgUser.Status != models.OrganisationUserStatusInvited {
-		*apiErrorP = cigExchange.NewInvalidFieldError("user_id", "User already active")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewInvalidFieldError("user_id", "User already active")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// check user organisation
 	apiError = orgUser.Delete()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -283,16 +282,16 @@ var DeleteInvitation = func(w http.ResponseWriter, r *http.Request) {
 var AcceptInvitation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeAcceptInvitation)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeAcceptInvitation)
+	defer cigExchange.PrintAPIError(info)
 
 	// get invitation accept key from post body
 	// read request body
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		*apiErrorP = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewReadError("Failed to read request body", err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -300,36 +299,36 @@ var AcceptInvitation = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]string from request body
 	err = json.Unmarshal(bytes, &acceptKeyMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	acceptKey, ok := acceptKeyMap["invitation_id"]
 	if !ok {
-		*apiErrorP = cigExchange.NewRequiredFieldError([]string{"invitation_id"})
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequiredFieldError([]string{"invitation_id"})
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 	if len(acceptKey) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("invitation_id", "Invitation id cannot be empty")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewInvalidFieldError("invitation_id", "Invitation id cannot be empty")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	redisClient := cigExchange.GetRedis()
 	redisCmd := redisClient.Get(acceptKey)
 	if redisCmd.Err() != nil {
-		*apiErrorP = cigExchange.NewRedisError("Unable to get invitation", redisCmd.Err())
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRedisError("Unable to get invitation", redisCmd.Err())
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// query user organisationUser from db
 	orgUser, apiError := models.OrganisationUserByID(redisCmd.Val())
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -337,24 +336,24 @@ var AcceptInvitation = func(w http.ResponseWriter, r *http.Request) {
 		apiError = &cigExchange.APIError{}
 		apiError.SetErrorType(cigExchange.ErrorTypeUnprocessableEntity)
 		apiError.NewNestedError(cigExchange.ReasonInvitationAlreadyAccepted, cigExchange.ReasonInvitationAlreadyAccepted)
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// query the user, validate his email if necessary
 	user, apiError := models.GetUser(orgUser.UserID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 	if user.Status == models.UserStatusUnverified {
 		user.Status = models.UserStatusVerified
 		apiError = user.Save()
 		if apiError != nil {
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
@@ -363,16 +362,16 @@ var AcceptInvitation = func(w http.ResponseWriter, r *http.Request) {
 	orgUser.Status = models.OrganisationUserStatusActive
 	apiError = orgUser.Update()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// reply with JWT token
-	tokenString, apiError := auth.GenerateJWTString(orgUser.UserID, orgUser.OrganisationID)
+	tokenString, _, apiError := auth.GenerateJWTString(orgUser.UserID, orgUser.OrganisationID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 

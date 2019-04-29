@@ -15,9 +15,9 @@ import (
 var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetOrganisation)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetOrganisation)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -25,17 +25,17 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -45,8 +45,8 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			// user don't belong to organisation
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
@@ -54,16 +54,16 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// query organisation from db
 	organisation, apiError := models.GetOrganisation(organisationID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// add multilang fields
 	orgMap, apiError := cigExchange.PrepareResponseForMultilangModel(organisation)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -74,30 +74,30 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetOrganisation)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetOrganisations)
+	defer cigExchange.PrintAPIError(info)
 
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	if len(loggedInUser.UserUUID) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("user_id", "Invalid user id")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewInvalidFieldError("user_id", "Invalid user id")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// get user role
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -106,8 +106,8 @@ var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 		// query organisation from db
 		organisations, apiError := models.GetAllOrganisations()
 		if apiError != nil {
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 
@@ -118,8 +118,8 @@ var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 	// query organisation from db
 	organisations, apiError := models.GetOrganisations(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -128,8 +128,8 @@ var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 	for _, organisation := range organisations {
 		orgMMap, apiError := cigExchange.PrepareResponseForMultilangModel(organisation)
 		if apiError != nil {
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 		orgsAMap = append(orgsAMap, orgMMap)
@@ -142,31 +142,31 @@ var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeCreateOrganisation)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeCreateOrganisation)
+	defer cigExchange.PrintAPIError(info)
 
 	// check jwt
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// get user role
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// only admin user can create organisation
 	if userRole != models.UserRoleAdmin {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -175,8 +175,8 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]interface from request body
 	err = json.NewDecoder(r.Body).Decode(&organisationMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -188,24 +188,24 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytes, err := json.Marshal(filteredOrganisationMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// decode offering object from request body
 	err = json.Unmarshal(jsonBytes, organisation)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// insert organisation into db
 	apiError = organisation.Create()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -219,16 +219,16 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// insert organisation user into db
 	apiError = orgUser.Create()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// add multilang fields
 	orgMap, apiError := cigExchange.PrepareResponseForMultilangModel(organisation)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -239,9 +239,9 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeUpdateOrganisation)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeUpdateOrganisation)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -249,17 +249,17 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -269,14 +269,14 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 		orgUserRole, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			// user don't belong to organisation
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 
 		if orgUserRole != models.OrganisationRoleAdmin {
-			*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
@@ -284,8 +284,8 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// read request body
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		*apiErrorP = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewReadError("Failed to read request body", err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -294,8 +294,8 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]interface from request body
 	err = json.Unmarshal(bytes, &organisationMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -307,16 +307,16 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytes, err := json.Marshal(filteredOrganisationMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// decode offering object from request body
 	err = json.Unmarshal(jsonBytes, organisation)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -328,8 +328,8 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	if userRole != models.UserRoleAdmin {
 		org, apiError := models.GetOrganisation(organisationID)
 		if apiError != nil {
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 		organisation.Status = org.Status
@@ -339,24 +339,24 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// update organisation
 	apiError = organisation.Update(filteredOrganisationMap)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// return updated organisation
 	existingOrganisation, apiError := models.GetOrganisation(organisationID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// add multilang fields
 	orgMap, apiError := cigExchange.PrepareResponseForMultilangModel(existingOrganisation)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -367,9 +367,9 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 var DeleteOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeDeleteOrganisation)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeDeleteOrganisation)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -377,57 +377,58 @@ var DeleteOrganisation = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// get user role and check user and organisation id
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// only admin user can delete organisation
 	if userRole != models.UserRoleAdmin {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// query organisaion from db
 	organisation, apiError := models.GetOrganisation(organisationID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// delete organisation
 	apiError = organisation.Delete()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// get all organisation user for organisation UUID
 	orgUsers, apiError := models.GetOrganisationUsersForOrganisation(organisationID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// delete all organisation users
 	for _, orgUser := range orgUsers {
 		// TODO: hadnle JWT invalidation here
-		*apiErrorP = orgUser.Delete()
-		if *apiErrorP != nil {
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+		apiError = orgUser.Delete()
+		if apiError != nil {
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
@@ -439,9 +440,9 @@ var DeleteOrganisation = func(w http.ResponseWriter, r *http.Request) {
 var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetUsers)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetUsers)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -449,17 +450,17 @@ var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -469,8 +470,8 @@ var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			// user don't belong to organisation
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
@@ -478,8 +479,8 @@ var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 	// query users from db
 	users, apiError := models.GetUsersForOrganisation(organisationID, false)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -490,9 +491,9 @@ var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeDeleteUser)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeDeleteUser)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -501,11 +502,11 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// fill OrganizationUser with user id and organisation id
 	searchOrgUser := models.OrganisationUser{
@@ -516,16 +517,16 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	// find OrganizationUser
 	orgUserDelete, apiError := searchOrgUser.Find()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -535,14 +536,14 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 		orgUserRole, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			// user don't belong to organisation
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 
 		if orgUserRole != models.OrganisationRoleAdmin {
-			*apiErrorP = cigExchange.NewAccessRightsError("Only admin user can delete users from organisation")
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = cigExchange.NewAccessRightsError("Only admin user can delete users from organisation")
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 
@@ -550,8 +551,8 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 		if orgUserDelete.OrganisationRole == models.OrganisationRoleAdmin {
 
 			if orgUserDelete.UserID == loggedInUser.UserUUID {
-				*apiErrorP = cigExchange.NewAccessRightsError("Admin user can't remove himself from organisation")
-				cigExchange.RespondWithAPIError(w, *apiErrorP)
+				info.APIError = cigExchange.NewAccessRightsError("Admin user can't remove himself from organisation")
+				cigExchange.RespondWithAPIError(w, info.APIError)
 				return
 			}
 		}
@@ -560,8 +561,8 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	// delete OrganisationUser
 	apiError = orgUserDelete.Delete()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 	w.WriteHeader(204)
@@ -571,9 +572,9 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 var AddOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeAddUser)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeAddUser)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -582,24 +583,24 @@ var AddOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// skip check for admin
 	if userRole != models.UserRoleAdmin {
-		*apiErrorP = cigExchange.NewAccessRightsError("Only admin user can directly add users to organisation. Organisation admin must use '/organisation/{}/invitations' api calls")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("Only admin user can directly add users to organisation. Organisation admin must use '/organisation/{}/invitations' api calls")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -612,8 +613,8 @@ var AddOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	// find OrganizationUser
 	_, apiErrorTemp := searchOrgUser.Find()
 	if apiErrorTemp == nil {
-		*apiErrorP = cigExchange.NewInvalidFieldError("user_id", "User already belongs to organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewInvalidFieldError("user_id", "User already belongs to organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -628,8 +629,8 @@ var AddOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 	// create OrganisationUser
 	apiError = orgUser.Create()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 	w.WriteHeader(204)
@@ -639,9 +640,9 @@ var AddOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 var GetDashboardInfo = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetDashboard)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetDashboard)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -649,17 +650,17 @@ var GetDashboardInfo = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -667,29 +668,29 @@ var GetDashboardInfo = func(w http.ResponseWriter, r *http.Request) {
 	if userRole != models.UserRoleAdmin {
 		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
 
-	info, apiError := models.GetOrganisationInfo(organisationID)
+	dashboardInfo, apiError := models.GetOrganisationInfo(organisationID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
-	cigExchange.Respond(w, info)
+	cigExchange.Respond(w, dashboardInfo)
 }
 
 // GetDashboardUsersInfo handles GET organisations/{organisation_id}/dashboard/users endpoint
 var GetDashboardUsersInfo = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetDashboard)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetDashboardUsers)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -697,17 +698,17 @@ var GetDashboardUsersInfo = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -715,29 +716,29 @@ var GetDashboardUsersInfo = func(w http.ResponseWriter, r *http.Request) {
 	if userRole != models.UserRoleAdmin {
 		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
 
-	info, apiError := models.GetOrganisationUsersInfo(organisationID)
+	dashboardInfo, apiError := models.GetOrganisationUsersInfo(organisationID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
-	cigExchange.Respond(w, info)
+	cigExchange.Respond(w, dashboardInfo)
 }
 
 // GetDashboardOfferingsBreakdown handles GET organisations/{organisation_id}/dashboard/offerings endpoint
 var GetDashboardOfferingsBreakdown = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetDashboard)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetDashboardBreakdown)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -745,17 +746,17 @@ var GetDashboardOfferingsBreakdown = func(w http.ResponseWriter, r *http.Request
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -763,29 +764,29 @@ var GetDashboardOfferingsBreakdown = func(w http.ResponseWriter, r *http.Request
 	if userRole != models.UserRoleAdmin {
 		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
 
-	info, apiError := models.GetOfferingsTypeBreakdown(organisationID)
+	dashboardInfo, apiError := models.GetOfferingsTypeBreakdown(organisationID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
-	cigExchange.Respond(w, info)
+	cigExchange.Respond(w, dashboardInfo)
 }
 
 // GetDashboardOfferingsClicks handles GET organisations/{organisation_id}/dashboard/clicks endpoint
 var GetDashboardOfferingsClicks = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetDashboard)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetDashboardClick)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -793,17 +794,17 @@ var GetDashboardOfferingsClicks = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -811,18 +812,18 @@ var GetDashboardOfferingsClicks = func(w http.ResponseWriter, r *http.Request) {
 	if userRole != models.UserRoleAdmin {
 		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
 
-	info, apiError := models.GetOfferingsClicks(organisationID)
+	dashboardInfo, apiError := models.GetOfferingsClicks(organisationID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
-	cigExchange.Respond(w, info)
+	cigExchange.Respond(w, dashboardInfo)
 }

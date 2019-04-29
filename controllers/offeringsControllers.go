@@ -15,9 +15,9 @@ import (
 var GetOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetOffering)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetOffering)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -26,38 +26,38 @@ var GetOffering = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	if organisationID != loggedInUser.OrganisationUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// query offering from db
 	offering, apiError := models.GetOffering(offeringID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// check if organisation id matches
 	if offering.OrganisationID != organisationID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// add multilang fields
 	offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(offering)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -68,9 +68,9 @@ var GetOffering = func(w http.ResponseWriter, r *http.Request) {
 var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeCreateOffering)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeCreateOffering)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -78,15 +78,15 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	if organisationID != loggedInUser.OrganisationUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -95,8 +95,8 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// read request body
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		*apiErrorP = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewReadError("Failed to read request body", err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -104,8 +104,8 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]interface from request body
 	err = json.Unmarshal(bytes, &offeringMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -117,38 +117,38 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytes, err := json.Marshal(filteredOfferingMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// decode offering object from request body
 	err = json.Unmarshal(jsonBytes, offering)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if offering.OrganisationID != organisationID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// insert offering into db
 	apiError := offering.Create()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// add multilang fields
 	offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(offering)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -159,9 +159,9 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeUpdateOffering)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeUpdateOffering)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -170,25 +170,25 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	offering := &models.Offering{}
 
 	if organisationID != loggedInUser.OrganisationUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// read request body
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		*apiErrorP = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewReadError("Failed to read request body", err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -196,8 +196,8 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// decode map[string]interface from request body
 	err = json.Unmarshal(bytes, &offeringMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -209,41 +209,41 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytes, err := json.Marshal(filteredOfferingMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewJSONEncodingError(cigExchange.MessageRequestJSONDecoding, err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// decode offering object from request body
 	err = json.Unmarshal(jsonBytes, offering)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if len(offering.OrganisationID) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("organisation_id", "Required field 'organisation_id' missing")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewInvalidFieldError("organisation_id", "Required field 'organisation_id' missing")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if offering.OrganisationID != organisationID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	existingOffering, apiError := models.GetOffering(offeringID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if existingOffering.OrganisationID != organisationID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -254,24 +254,24 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 	// update offering
 	apiError = offering.Update(filteredOfferingMap)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// return updated offering
 	existingOffering, apiError = models.GetOffering(offeringID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// add multilang fields
 	offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(existingOffering)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -282,9 +282,9 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 var DeleteOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeDeleteOffering)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeDeleteOffering)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -293,37 +293,37 @@ var DeleteOffering = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	if organisationID != loggedInUser.OrganisationUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// query offering from db first to validate the permissions
 	offering, apiError := models.GetOffering(offeringID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if offering.OrganisationID != organisationID {
-		*apiErrorP = cigExchange.NewAccessRightsError("Offering doesn't belong to organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("Offering doesn't belong to organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// delete offering
 	apiError = offering.Delete()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 	w.WriteHeader(204)
@@ -333,9 +333,9 @@ var DeleteOffering = func(w http.ResponseWriter, r *http.Request) {
 var GetOfferings = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetOfferings)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetOfferings)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -343,23 +343,23 @@ var GetOfferings = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	if organisationID != loggedInUser.OrganisationUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// query all offerings from db
 	offerings, apiError := models.GetOrganisationOfferings(organisationID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -368,8 +368,8 @@ var GetOfferings = func(w http.ResponseWriter, r *http.Request) {
 	for _, offering := range offerings {
 		offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(offering)
 		if apiError != nil {
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 		offeringsAMap = append(offeringsAMap, offeringMMap)
@@ -383,15 +383,15 @@ var GetOfferings = func(w http.ResponseWriter, r *http.Request) {
 var GetAllOfferings = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeAllOfferings)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeAllOfferings)
+	defer cigExchange.PrintAPIError(info)
 
 	// query all offerings from db
 	offerings, apiError := models.GetOfferings()
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -402,8 +402,8 @@ var GetAllOfferings = func(w http.ResponseWriter, r *http.Request) {
 			// add multilang fields
 			offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(offering)
 			if apiError != nil {
-				*apiErrorP = apiError
-				cigExchange.RespondWithAPIError(w, *apiErrorP)
+				info.APIError = apiError
+				cigExchange.RespondWithAPIError(w, info.APIError)
 				return
 			}
 			offeringMMap["organisation"] = offering.Organisation.Name
