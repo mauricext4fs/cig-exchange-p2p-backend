@@ -391,6 +391,20 @@ Deletes a specific invitation.
 + Response 204
 
 
+# Group Trading/Invitations
+
+## invest/api/users/accept-invitation [/invest/api/users/accept-invitation]
+
+### Accept invitation [POST]
+Accept invitation using invitation id
+
++ Request (application/json)
+    + Attributes (Accept Invitation Request)
+
++ Response 200 (application/json)
+    + Attributes (OTP Response)
+
+
 # Group P2P/OrganisationUsers
 
 ## p2p/api/organisations/{organisation}/users [/p2p/api/organisations/{organisation}/users]
@@ -695,15 +709,18 @@ Only admin user can delete organisation.
 + `name`: `First Name` (string, required) - user first name
 + `lastname`: `Last Name` (string, required) - user last name
 + `title`: `Mr` (string, required) - user title
-+ `email`: `dev+test+org@cig-exchange.ch` (string, required) - user email
++ `email`: `blackhole+dev+test+org@cig-exchange.ch` (string, required) - user email
 + `phone_country_code`: `+1` (string, required) - user mobile number code
 + `phone_number`: `1111111111` (string, required) - user mobile number
+
+### Accept Invitation Request
++ `invitation_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - media object uuid
 
 ### Create Organisation Request
 + `name`: `First Name` (string, required) - user first name
 + `lastname`: `Last Name` (string, required) - user last name
 + `title`: `Mr` (string, required) - user title
-+ `email`: `dev+test+org@cig-exchange.ch` (string, required) - user email
++ `email`: `blackhole+dev+test+org@cig-exchange.ch` (string, required) - user email
 + `phone_country_code`: `+1` (string, required) - user mobile number code
 + `phone_number`: `1111111111` (string, required) - user mobile number
 + `organisation_name`: `organisation_name` (string) - organisation name
@@ -733,14 +750,14 @@ Only admin user can delete organisation.
 + `name`: `First Name` (string, required) - user first name
 + `lastname`: `Last Name` (string, required) - user last name
 + `title`: `Mr` (string, required) - user title
-+ `email`: `dev+test@cig-exchange.ch` (string, required) - user email
++ `email`: `blackhole+dev+test@cig-exchange.ch` (string, required) - user email
 + `phone_country_code`: `+1` (string, required) - user mobile number code
 + `phone_number`: `1111111111` (string, required) - user mobile number
 + `reference_key`: `credit_24_gate` (string) - organisation reference key, required for 'p2p' platform
 + `platform`: `trading` (string, required) - platform to create account on, supported values are 'p2p' and 'trading'
 
 ### User Signin Request
-+ `email`: `dev+test@cig-exchange.ch` (string) - user email
++ `email`: `blackhole+dev+test@cig-exchange.ch` (string) - user email
 + `phone_country_code`: `+1` (string) - user mobile number code
 + `phone_number`: `1111111111` (string) - user mobile number
 
@@ -764,7 +781,7 @@ Only admin user can delete organisation.
 + `role`: `admin` (string, required) - user role
 + `organisation_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - organisation uuid
 + `organisation_role`: `admin` (string, required) - organisation role
-+ `email`: `dev+test@cig-exchange.ch` (string, required) - user email
++ `email`: `blackhole+dev+test@cig-exchange.ch` (string, required) - user email
 
 ### OrganisationUser Response
 + `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid

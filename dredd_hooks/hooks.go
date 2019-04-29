@@ -37,6 +37,8 @@ func main() {
 	// save created record UUID here
 	createdUUID := ""
 	invitationUUID := ""
+	invitedUserUUID := ""
+	invitationCode := ""
 
 	// prepare the database:
 	// 1. delete 'dredd' users if it exists (first name  = 'dredd', 'dredd2', 'dredd3', 'dredd4')
@@ -107,13 +109,18 @@ func main() {
 	orgUUID = org.ID
 
 	// create some offerings belonging to 'dredd' organization
+	amount := float64(100)
+	taken := float64(50)
 	offering := models.Offering{
-		Title:             postgres.Jsonb{RawMessage: titleMetadata},
-		OrganisationID:    orgUUID,
-		Type:              make(pq.StringArray, 0),
-		IsVisible:         true,
-		OfferingDirectURL: postgres.Jsonb{RawMessage: metadata},
-		Origin:            "origin",
+		Title:              postgres.Jsonb{RawMessage: titleMetadata},
+		OrganisationID:     orgUUID,
+		Type:               make(pq.StringArray, 0),
+		IsVisible:          true,
+		OfferingDirectURL:  postgres.Jsonb{RawMessage: metadata},
+		Origin:             "origin",
+		Amount:             &amount,
+		Remaining:          float64(50),
+		AmountAlreadyTaken: &taken,
 	}
 
 	err = dbClient.Create(&offering).Error
@@ -129,7 +136,7 @@ func main() {
 		Role:       models.UserRoleUser,
 		Name:       "dredd4",
 		LastName:   "dredd4",
-		LoginEmail: &models.Contact{Type: models.ContactTypeEmail, Level: models.ContactLevelPrimary, Value1: "dev+test+dredd@cig-exchange.ch"},
+		LoginEmail: &models.Contact{Type: models.ContactTypeEmail, Level: models.ContactLevelPrimary, Value1: "blackhole+dev+test+dredd@cig-exchange.ch"},
 		LoginPhone: &models.Contact{Type: models.ContactTypePhone, Level: models.ContactLevelSecondary, Value1: "+1", Value2: "333333333"},
 		Status:     models.UserStatusVerified,
 	}
@@ -287,6 +294,19 @@ func main() {
 		setBodyValue(&t.Request.Body, "name", dredd3)
 		setBodyValue(&t.Request.Body, "organisation_name", dredd3)
 		setBodyValue(&t.Request.Body, "reference_key", dredd3)
+	})
+
+	h.After("Trading/Organisations > invest/api/organisations/signup > Create organisation", func(t *trans.Transaction) {
+		// happens when api is down
+		if t.Real == nil {
+			return
+		}
+
+		invitedUserUUID = getBodyValue(&t.Real.Body, "uuid")
+		if len(invitedUserUUID) == 0 {
+			t.Fail = "Unable to save user UUID"
+			return
+		}
 	})
 
 	h.Before("P2P/Users > p2p/api/users/switch/{organisation} > Switch Organisation", func(t *trans.Transaction) {
@@ -644,6 +664,11 @@ func main() {
 			t.Fail = "Unable to save invitation UUID"
 			return
 		}
+		invitationCode = getBodyValue(&t.Real.Body, "code")
+		if len(invitationCode) == 0 {
+			t.Fail = "Unable to save invitation code"
+			return
+		}
 	})
 
 	h.Before("P2P/Invitations > p2p/api/organisations/{organisation}/invitations > Retrieve invitations", func(t *trans.Transaction) {
@@ -674,6 +699,30 @@ func main() {
 
 		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/invitations/" + invitationUUID
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/invitations/" + invitationUUID
+	})
+
+	h.Before("Trading/Invitations > invest/api/users/accept-invitation > Accept invitation", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+
+		if len(invitationCode) == 0 {
+			t.Fail = "Created invitation code is empty"
+			return
+		}
+		if len(invitedUserUUID) == 0 {
+			t.Fail = "Created invited user UUID is empty"
+			return
+		}
+
+		// undelete the invitation
+		orgUser := &models.OrganisationUser{
+			UserID: invitedUserUUID,
+			Status: models.OrganisationUserStatusInvited,
+		}
+		dbClient.Unscoped().Model(&models.OrganisationUser{}).Where(orgUser).Update("deleted_at", nil)
+
+		setBodyValue(&t.Request.Body, "invitation_id", invitationCode)
 	})
 
 	h.Before("P2P/OrganisationUsers > p2p/api/organisations/{organisation}/users > Retrieve organisation users", func(t *trans.Transaction) {

@@ -6,8 +6,8 @@ import (
 	models "cig-exchange-libs/models"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -67,7 +67,7 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check that organisation exists
+	// check that user who invites exists
 	inviter, apiError := models.GetUser(loggedInUser.UserUUID)
 	if apiError != nil {
 		*apiErrorP = apiError
@@ -79,37 +79,69 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 
 	user := userReq.ConvertRequestToUser()
 
-	// create user or invite existing user
-	createdUser, apiError := models.CreateInvitedUser(user, org)
-	if apiError != nil {
+	// check if user exist
+	invitedUser, apiError := models.GetUserByEmail(userReq.Email, true)
+	if err != nil {
 		*apiErrorP = apiError
-		if apiError.ShouldSilenceError() {
-			w.WriteHeader(204)
-		} else {
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
-		}
+		cigExchange.RespondWithAPIError(w, apiError)
 		return
 	}
+	// invited user can be nill, which means it doesn't exist
+	if invitedUser == nil {
+		// create new user w/o reference key, we will create organisation link manually
+		invitedUser, apiError = models.CreateUser(user, "")
+		if apiError != nil {
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, apiError)
+			return
+		}
+	}
 
-	rediskey := cigExchange.GenerateRedisKey(createdUser.ID)
-	expiration := 5 * time.Minute
-
-	code := cigExchange.RandCode(6)
-	redisCmd := cigExchange.GetRedis().Set(rediskey, code, expiration)
-	if redisCmd.Err() != nil {
-		*apiErrorP = cigExchange.NewRedisError("Set code failure", redisCmd.Err())
+	// check organisation link existance, we don't want double invites
+	orgUserWhere := &models.OrganisationUser{
+		UserID:         invitedUser.ID,
+		OrganisationID: organisationID,
+	}
+	_, apiError = orgUserWhere.Find()
+	if apiError == nil { // expecting error, no error means link exists
+		apiError = &cigExchange.APIError{}
+		apiError.SetErrorType(cigExchange.ErrorTypeUnprocessableEntity)
+		apiError.NewNestedError(cigExchange.ReasonInvitationAlreadyExists, cigExchange.ReasonInvitationAlreadyExists)
+		*apiErrorP = apiError
 		cigExchange.RespondWithAPIError(w, *apiErrorP)
 		return
 	}
 
-	// send welcome email async
+	// create organisation link for the user
+	orgUser := &models.OrganisationUser{
+		UserID:           invitedUser.ID,
+		OrganisationID:   organisationID,
+		Status:           models.OrganisationUserStatusInvited,
+		IsHome:           false,
+		OrganisationRole: models.OrganisationRoleUser,
+	}
+	apiError = orgUser.Create()
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, apiError)
+		return
+	}
+
+	// save the orgUser UUID into redis for accept workflow
+	rediskey := cigExchange.RandomUUID()
+	expiration := 30 * 24 * time.Hour
+	redisCmd := cigExchange.GetRedis().Set(rediskey, orgUser.ID, expiration)
+	if redisCmd.Err() != nil {
+		*apiErrorP = cigExchange.NewRedisError("Set invitation accept code failure", redisCmd.Err())
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// send invitation email async
 	go func() {
-		// url parameters
-		params := url.Values{}
-		params.Add("email", userReq.Email)
 		// email parameters
 		parameters := map[string]string{
-			"ACCEPT_URL":           cigExchange.GetServerURL() + "/invest/en/accept?" + params.Encode(),
+			"ACCEPT_URL":           cigExchange.GetServerURL() + "/invest/en/#accept-invitation/" + rediskey,
 			"INVITE_FIRST_NAME":    userReq.Name,
 			"INVITER_NAME":         inviter.Name + " " + inviter.LastName,
 			"INVITER_ORGANISATION": org.Name,
@@ -122,10 +154,10 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	resp := make(map[string]string, 0)
-	resp["uuid"] = createdUser.ID
-	// in "DEV" environment we return the email signup code for testing purposes
+	resp["uuid"] = invitedUser.ID
+	// in "DEV" environment we return invitation accept code for testing purposes
 	if cigExchange.IsDevEnv() {
-		resp["code"] = code
+		resp["code"] = rediskey
 	}
 
 	cigExchange.Respond(w, resp)
@@ -221,7 +253,7 @@ var DeleteInvitation = func(w http.ResponseWriter, r *http.Request) {
 		OrganisationID: organisationID,
 		UserID:         userID,
 	}
-	// query user organisation from db
+	// query user organisationUser from db
 	orgUser, apiError := searchOrgUser.Find()
 	if apiError != nil {
 		*apiErrorP = apiError
@@ -245,4 +277,107 @@ var DeleteInvitation = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(204)
+}
+
+// AcceptInvitation handles POST users/accept-invitation endpoint (no JWT)
+var AcceptInvitation = func(w http.ResponseWriter, r *http.Request) {
+
+	// create user activity record and print error with defer
+	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
+	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeAcceptInvitation)
+	defer cigExchange.PrintAPIError(apiErrorP)
+
+	// get invitation accept key from post body
+	// read request body
+	bytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		*apiErrorP = cigExchange.NewReadError("Failed to read request body", err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	acceptKeyMap := make(map[string]string)
+	// decode map[string]string from request body
+	err = json.Unmarshal(bytes, &acceptKeyMap)
+	if err != nil {
+		*apiErrorP = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	acceptKey, ok := acceptKeyMap["invitation_id"]
+	if !ok {
+		*apiErrorP = cigExchange.NewRequiredFieldError([]string{"invitation_id"})
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	if len(acceptKey) == 0 {
+		*apiErrorP = cigExchange.NewInvalidFieldError("invitation_id", "Invitation id cannot be empty")
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	redisClient := cigExchange.GetRedis()
+	redisCmd := redisClient.Get(acceptKey)
+	if redisCmd.Err() != nil {
+		*apiErrorP = cigExchange.NewRedisError("Unable to get invitation", redisCmd.Err())
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// query user organisationUser from db
+	orgUser, apiError := models.OrganisationUserByID(redisCmd.Val())
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	if orgUser.Status != models.OrganisationUserStatusInvited {
+		apiError = &cigExchange.APIError{}
+		apiError.SetErrorType(cigExchange.ErrorTypeUnprocessableEntity)
+		apiError.NewNestedError(cigExchange.ReasonInvitationAlreadyAccepted, cigExchange.ReasonInvitationAlreadyAccepted)
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// query the user, validate his email if necessary
+	user, apiError := models.GetUser(orgUser.UserID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+	if user.Status == models.UserStatusUnverified {
+		user.Status = models.UserStatusVerified
+		apiError = user.Save()
+		if apiError != nil {
+			*apiErrorP = apiError
+			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			return
+		}
+	}
+
+	// mark invitation accepted
+	orgUser.Status = models.OrganisationUserStatusActive
+	apiError = orgUser.Update()
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	// reply with JWT token
+	tokenString, apiError := auth.GenerateJWTString(orgUser.UserID, orgUser.OrganisationID)
+	if apiError != nil {
+		*apiErrorP = apiError
+		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		return
+	}
+
+	resp := &auth.JwtResponse{
+		JWT: tokenString,
+	}
+	cigExchange.Respond(w, resp)
 }
