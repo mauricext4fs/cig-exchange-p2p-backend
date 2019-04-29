@@ -37,6 +37,7 @@ func main() {
 	// save created record UUID here
 	createdUUID := ""
 	invitationUUID := ""
+	invitedUserUUID := ""
 	invitationCode := ""
 
 	// prepare the database:
@@ -293,6 +294,19 @@ func main() {
 		setBodyValue(&t.Request.Body, "name", dredd3)
 		setBodyValue(&t.Request.Body, "organisation_name", dredd3)
 		setBodyValue(&t.Request.Body, "reference_key", dredd3)
+	})
+
+	h.After("Trading/Organisations > invest/api/organisations/signup > Create organisation", func(t *trans.Transaction) {
+		// happens when api is down
+		if t.Real == nil {
+			return
+		}
+
+		invitedUserUUID = getBodyValue(&t.Real.Body, "uuid")
+		if len(invitedUserUUID) == 0 {
+			t.Fail = "Unable to save user UUID"
+			return
+		}
 	})
 
 	h.Before("P2P/Users > p2p/api/users/switch/{organisation} > Switch Organisation", func(t *trans.Transaction) {
@@ -685,6 +699,30 @@ func main() {
 
 		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/invitations/" + invitationUUID
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/invitations/" + invitationUUID
+	})
+
+	h.Before("Trading/Invitations > invest/api/users/accept-invitation > Accept invitation", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+
+		if len(invitationCode) == 0 {
+			t.Fail = "Created invitation code is empty"
+			return
+		}
+		if len(invitedUserUUID) == 0 {
+			t.Fail = "Created invited user UUID is empty"
+			return
+		}
+
+		// undelete the invitation
+		orgUser := &models.OrganisationUser{
+			UserID: invitedUserUUID,
+			Status: models.OrganisationUserStatusInvited,
+		}
+		dbClient.Unscoped().Model(&models.OrganisationUser{}).Where(orgUser).Update("deleted_at", nil)
+
+		setBodyValue(&t.Request.Body, "invitation_id", invitationCode)
 	})
 
 	h.Before("P2P/OrganisationUsers > p2p/api/organisations/{organisation}/users > Retrieve organisation users", func(t *trans.Transaction) {
