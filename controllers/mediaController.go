@@ -38,9 +38,9 @@ var GetMedia = func(w http.ResponseWriter, r *http.Request) {
 var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeUploadMedia)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeUploadMedia)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -49,17 +49,17 @@ var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -69,8 +69,8 @@ var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			// user don't belong to organisation
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
@@ -78,14 +78,14 @@ var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 	// query offering from db first to validate the permissions
 	offering, apiError := models.GetOffering(offeringID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if offering.OrganisationID != organisationID {
-		*apiErrorP = cigExchange.NewAccessRightsError("Offering doesn't belong to organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("Offering doesn't belong to organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -95,8 +95,8 @@ var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	fileBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		*apiErrorP = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewReadError("Failed to read request body", err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -114,8 +114,8 @@ var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 
 	exts, err := mime.ExtensionsByType(filetype)
 	if err != nil {
-		*apiErrorP = cigExchange.NewReadError("Can't get file extension", err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewReadError("Can't get file extension", err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 	if len(exts) > 0 {
@@ -128,16 +128,16 @@ var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 	// insert offering into db
 	apiError = models.CreateMediaForOffering(media, offeringID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// save file to user_data folder
 	err = ioutil.WriteFile(path.Join(UserDataPath, media.ID)+media.FileExtension, fileBytes, 0644)
 	if err != nil {
-		*apiErrorP = cigExchange.NewReadError("Failed to write request body to file", err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewReadError("Failed to write request body to file", err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -148,9 +148,9 @@ var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 var GetOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetOfferingsMedia)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetOfferingsMedia)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	offeringID := mux.Vars(r)["offering_id"]
@@ -158,16 +158,16 @@ var GetOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 	// query offering from db
 	_, apiError := models.GetOffering(offeringID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// query all media for offering
 	offeringMedias, apiError := models.GetMediaForOffering(offeringID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -178,9 +178,9 @@ var GetOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 var UpdateOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeUpdateOfferingsMedia)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeUpdateOfferingsMedia)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -190,17 +190,17 @@ var UpdateOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -210,8 +210,8 @@ var UpdateOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			// user don't belong to organisation
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
@@ -219,22 +219,22 @@ var UpdateOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 	// query offering from db
 	offering, apiError := models.GetOffering(offeringID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if offering.OrganisationID != organisationID {
-		*apiErrorP = cigExchange.NewAccessRightsError("Offering doesn't belong to organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("Offering doesn't belong to organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// get exisitng media model
 	media, apiError := models.GetMedia(mediaID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -242,8 +242,8 @@ var UpdateOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 	// decode media object from request body
 	err = json.NewDecoder(r.Body).Decode(&mediaMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -256,8 +256,8 @@ var UpdateOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 	// update media
 	apiError = media.Update(filteredMediaMap)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -268,9 +268,9 @@ var UpdateOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 var DeleteOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeDeleteOffering)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeDeleteOfferingsMedia)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	organisationID := mux.Vars(r)["organisation_id"]
@@ -280,31 +280,31 @@ var DeleteOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// query offering from db first to validate the permissions
 	offering, apiError := models.GetOffering(offeringID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if offering.OrganisationID != organisationID {
-		*apiErrorP = cigExchange.NewAccessRightsError("Offering doesn't belong to organisation")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("Offering doesn't belong to organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	// check admin
 	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -314,8 +314,8 @@ var DeleteOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
 		if apiError != nil {
 			// user don't belong to organisation
-			*apiErrorP = apiError
-			cigExchange.RespondWithAPIError(w, *apiErrorP)
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
 			return
 		}
 	}
@@ -323,8 +323,8 @@ var DeleteOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 	// delete offering
 	apiError = models.DeleteOfferingMedia(mediaID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 	w.WriteHeader(204)

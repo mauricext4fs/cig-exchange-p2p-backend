@@ -14,9 +14,9 @@ import (
 var GetUserActivities = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-	defer auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeGetUserActivities)
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer auth.CreateUserActivity(info, models.ActivityTypeGetUserActivities)
+	defer cigExchange.PrintAPIError(info)
 
 	// get request params
 	userID := mux.Vars(r)["user_id"]
@@ -24,29 +24,29 @@ var GetUserActivities = func(w http.ResponseWriter, r *http.Request) {
 	// load context user info
 	loggedInUser, err := auth.GetContextValues(r)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRoutingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
-	*loggedInUserP = loggedInUser
+	info.LoggedInUser = loggedInUser
 
 	// check user id
 	if len(userID) == 0 {
-		*apiErrorP = cigExchange.NewInvalidFieldError("user_id", "UserID is invalid")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewInvalidFieldError("user_id", "UserID is invalid")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	if userID != loggedInUser.UserUUID {
-		*apiErrorP = cigExchange.NewAccessRightsError("No access rights for the user")
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = cigExchange.NewAccessRightsError("No access rights for the user")
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
 	userActs, apiError := models.GetActivitiesForUser(userID)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
@@ -57,31 +57,32 @@ var GetUserActivities = func(w http.ResponseWriter, r *http.Request) {
 var CreateUserActivity = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	apiErrorP, loggedInUserP := auth.PrepareActivityVariables()
-
-	defer cigExchange.PrintAPIError(apiErrorP)
+	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	defer cigExchange.PrintAPIError(info)
 
 	// check jwt
 	loggedInUser, err := auth.GetContextValues(r)
+	// ignore error for invest api call
 	if err == nil {
-		*loggedInUserP = loggedInUser
+		info.LoggedInUser = loggedInUser
 	}
 
-	info := make(map[string]interface{})
+	infoMap := make(map[string]interface{})
 	// decode organisation object from request body
-	err = json.NewDecoder(r.Body).Decode(&info)
+	err = json.NewDecoder(r.Body).Decode(&infoMap)
 	if err != nil {
-		*apiErrorP = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
-		auth.CreateUserActivity(loggedInUserP, apiErrorP, models.ActivityTypeCreateUserActivity)
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		auth.CreateUserActivity(info, models.ActivityTypeCreateUserActivity)
 		return
 	}
 
 	// insert user activity into db
-	apiError := auth.CreateCustomUserActivity(loggedInUserP, info)
+	apiError := auth.CreateCustomUserActivity(info, infoMap)
 	if apiError != nil {
-		*apiErrorP = apiError
-		cigExchange.RespondWithAPIError(w, *apiErrorP)
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		auth.CreateUserActivity(info, models.ActivityTypeCreateUserActivity)
 		return
 	}
 
