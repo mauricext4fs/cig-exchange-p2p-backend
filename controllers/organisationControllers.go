@@ -5,7 +5,6 @@ import (
 	"cig-exchange-libs/auth"
 	"cig-exchange-libs/models"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -281,18 +280,10 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// read request body
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		info.APIError = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, info.APIError)
-		return
-	}
-
 	organisation := &models.Organisation{}
 	organisationMap := make(map[string]interface{})
 	// decode map[string]interface from request body
-	err = json.Unmarshal(bytes, &organisationMap)
+	err = json.NewDecoder(r.Body).Decode(&organisationMap)
 	if err != nil {
 		info.APIError = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, info.APIError)

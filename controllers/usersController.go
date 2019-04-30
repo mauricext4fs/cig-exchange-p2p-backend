@@ -5,7 +5,6 @@ import (
 	"cig-exchange-libs/auth"
 	"cig-exchange-libs/models"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -88,26 +87,10 @@ var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// read request body
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		info.APIError = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, info.APIError)
-		return
-	}
-
 	user := &models.User{}
-	// decode user object from request body
-	err = json.Unmarshal(bytes, user)
-	if err != nil {
-		info.APIError = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, info.APIError)
-		return
-	}
-
 	userMap := make(map[string]interface{})
 	// decode map[string]interface from request body
-	err = json.Unmarshal(bytes, &userMap)
+	err = json.NewDecoder(r.Body).Decode(&userMap)
 	if err != nil {
 		info.APIError = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, info.APIError)
@@ -118,7 +101,6 @@ var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 	filteredUserMap := cigExchange.FilterUnknownFields(user, userMap)
 
 	// set the user UUID
-	user.ID = userID
 	filteredUserMap["id"] = userID
 
 	// update user

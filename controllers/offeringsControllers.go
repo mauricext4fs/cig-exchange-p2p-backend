@@ -5,7 +5,6 @@ import (
 	"cig-exchange-libs/auth"
 	models "cig-exchange-libs/models"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -92,17 +91,9 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 
 	offering := &models.Offering{}
 
-	// read request body
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		info.APIError = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, info.APIError)
-		return
-	}
-
 	offeringMap := make(map[string]interface{})
 	// decode map[string]interface from request body
-	err = json.Unmarshal(bytes, &offeringMap)
+	err = json.NewDecoder(r.Body).Decode(&offeringMap)
 	if err != nil {
 		info.APIError = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, info.APIError)
@@ -184,17 +175,9 @@ var UpdateOffering = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// read request body
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		info.APIError = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, info.APIError)
-		return
-	}
-
 	offeringMap := make(map[string]interface{})
 	// decode map[string]interface from request body
-	err = json.Unmarshal(bytes, &offeringMap)
+	err = json.NewDecoder(r.Body).Decode(&offeringMap)
 	if err != nil {
 		info.APIError = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, info.APIError)

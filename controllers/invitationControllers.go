@@ -6,7 +6,6 @@ import (
 	models "cig-exchange-libs/models"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -287,17 +286,9 @@ var AcceptInvitation = func(w http.ResponseWriter, r *http.Request) {
 	defer cigExchange.PrintAPIError(info)
 
 	// get invitation accept key from post body
-	// read request body
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		info.APIError = cigExchange.NewReadError("Failed to read request body", err)
-		cigExchange.RespondWithAPIError(w, info.APIError)
-		return
-	}
-
 	acceptKeyMap := make(map[string]string)
 	// decode map[string]string from request body
-	err = json.Unmarshal(bytes, &acceptKeyMap)
+	err := json.NewDecoder(r.Body).Decode(&acceptKeyMap)
 	if err != nil {
 		info.APIError = cigExchange.NewRequestDecodingError(err)
 		cigExchange.RespondWithAPIError(w, info.APIError)
