@@ -4,7 +4,6 @@ import (
 	cigExchange "cig-exchange-libs"
 	"cig-exchange-libs/auth"
 	"cig-exchange-libs/models"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -124,6 +123,14 @@ var CreateContact = func(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// check that user exists
+	_, apiError = models.GetUser(userID)
+	if apiError != nil {
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
 	// read contact
 	contact := &models.Contact{}
 	original, _, apiError := cigExchange.ReadAndParseRequest(r.Body, contact)
@@ -137,9 +144,7 @@ var CreateContact = func(w http.ResponseWriter, r *http.Request) {
 	index := int32(500)
 	// get index from original map
 	if indexVal, ok := original["index"]; ok {
-		// convert index to int
-		log.Printf("asdasd %v", indexVal)
-		if indexInt, ok := indexVal.(int32); ok {
+		if indexInt, ok := cigExchange.ConvertToInt32(indexVal); ok {
 			index = indexInt
 		} else {
 			info.APIError = cigExchange.NewInvalidFieldError("index", "Index is not integer")
@@ -152,6 +157,9 @@ var CreateContact = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// can create only secondary level contacts for now
+	contact.Level = models.ContactLevelSecondary
+
 	// create contact and user_contact
 	apiError = contact.Create(userID, index)
 	if apiError != nil {
@@ -160,7 +168,10 @@ var CreateContact = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cigExchange.Respond(w, contact)
+	// add index
+	contactWithIndex := &models.ContactWithIndex{Contact: contact, Index: index}
+
+	cigExchange.Respond(w, contactWithIndex)
 }
 
 // UpdateContact handles PATCH users/{user_id}/contacts/{contact_id} endpoint
@@ -229,7 +240,7 @@ var UpdateContact = func(w http.ResponseWriter, r *http.Request) {
 	// get index from original map
 	if indexVal, ok := original["index"]; ok {
 		// convert index to int
-		if indexInt, ok := indexVal.(int32); ok {
+		if indexInt, ok := cigExchange.ConvertToInt32(indexVal); ok {
 			index = indexInt
 		} else {
 			info.APIError = cigExchange.NewInvalidFieldError("index", "Index is not integer")
@@ -246,6 +257,9 @@ var UpdateContact = func(w http.ResponseWriter, r *http.Request) {
 	filtered["id"] = contactID
 	contact.ID = contactID
 
+	// can't change contact level for now
+	delete(filtered, "level")
+
 	// update coontact
 	apiError = contact.Update(userID, filtered, index)
 	if apiError != nil {
@@ -254,7 +268,10 @@ var UpdateContact = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cigExchange.Respond(w, contact)
+	// add index
+	contactWithIndex := &models.ContactWithIndex{Contact: contact, Index: index}
+
+	cigExchange.Respond(w, contactWithIndex)
 }
 
 // DeleteContact handles DELETE users/{user_id}/contacts/{contact_id} endpoint
@@ -313,6 +330,12 @@ var DeleteContact = func(w http.ResponseWriter, r *http.Request) {
 	contact, apiError := models.GetContact(contactID)
 	if apiError != nil {
 		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
+	if contact.Level == models.ContactLevelPrimary {
+		info.APIError = cigExchange.NewInvalidFieldError("contact_id", "Can't delete primary contact")
 		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
