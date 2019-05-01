@@ -39,6 +39,7 @@ func main() {
 	invitationUUID := ""
 	invitedUserUUID := ""
 	invitationCode := ""
+	contactUUID := ""
 
 	// prepare the database:
 	// 1. delete 'dredd' users if it exists (first name  = 'dredd', 'dredd2', 'dredd3', 'dredd4')
@@ -96,9 +97,9 @@ func main() {
 
 	// create 'dredd' organisation
 	org := models.Organisation{
-		Name:         dredd,
-		ReferenceKey: dredd,
-		Status:       models.OrganisationStatusVerified,
+		Name:                      dredd,
+		ReferenceKey:              dredd,
+		Status:                    models.OrganisationStatusVerified,
 		OfferingRatingDescription: postgres.Jsonb{RawMessage: titleMetadata},
 	}
 	err := dbClient.Create(&org).Error
@@ -356,6 +357,63 @@ func main() {
 		setBodyValue(&t.Request.Body, "name", dredd)
 		t.Request.URI = "/p2p/api/users/" + userUUID
 		t.FullPath = "/p2p/api/users/" + userUUID
+	})
+
+	h.Before("P2P/Users > p2p/api/users/{user}/contacts > Retrieve user contacts", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+
+		t.Request.URI = "/p2p/api/users/" + userUUID + "/contacts"
+		t.FullPath = "/p2p/api/users/" + userUUID + "/contacts"
+	})
+
+	h.Before("P2P/Users > p2p/api/users/{user}/contacts > Create user contact", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+
+		t.Request.URI = "/p2p/api/users/" + userUUID + "/contacts"
+		t.FullPath = "/p2p/api/users/" + userUUID + "/contacts"
+	})
+
+	h.After("P2P/Users > p2p/api/users/{user}/contacts > Create user contact", func(t *trans.Transaction) {
+
+		if t.Real == nil {
+			return
+		}
+
+		contactUUID = getBodyValue(&t.Real.Body, "id")
+	})
+
+	h.Before("P2P/Users > p2p/api/users/{user}/contacts/{contact} > Update user contact", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+		if len(contactUUID) == 0 {
+			t.Fail = "Contact UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/users/" + userUUID + "/contacts/" + contactUUID
+		t.FullPath = "/p2p/api/users/" + userUUID + "/contacts/" + contactUUID
+	})
+
+	h.Before("P2P/Users > p2p/api/users/{user}/contacts/{contact} > Delete user contact", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+		if len(contactUUID) == 0 {
+			t.Fail = "Contact UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/users/" + userUUID + "/contacts/" + contactUUID
+		t.FullPath = "/p2p/api/users/" + userUUID + "/contacts/" + contactUUID
 	})
 
 	h.Before("P2P/Users > p2p/api/users/{user}/activities > Retrieve user activities", func(t *trans.Transaction) {
