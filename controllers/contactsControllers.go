@@ -13,7 +13,7 @@ import (
 var GetContacts = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeGetUserContacts)
 	defer cigExchange.PrintAPIError(info)
 
@@ -83,7 +83,7 @@ var GetContacts = func(w http.ResponseWriter, r *http.Request) {
 var CreateContact = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeCreateUserContact)
 	defer cigExchange.PrintAPIError(info)
 
@@ -178,7 +178,7 @@ var CreateContact = func(w http.ResponseWriter, r *http.Request) {
 var UpdateContact = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeUpdateUserContact)
 	defer cigExchange.PrintAPIError(info)
 
@@ -278,7 +278,7 @@ var UpdateContact = func(w http.ResponseWriter, r *http.Request) {
 var DeleteContact = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeDeleteUserContact)
 	defer cigExchange.PrintAPIError(info)
 

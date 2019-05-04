@@ -14,7 +14,7 @@ import (
 var GetUser = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeGetUser)
 	defer cigExchange.PrintAPIError(info)
 
@@ -58,7 +58,7 @@ var GetUser = func(w http.ResponseWriter, r *http.Request) {
 var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeUpdateUser)
 	defer cigExchange.PrintAPIError(info)
 
