@@ -38,7 +38,7 @@ var GetMedia = func(w http.ResponseWriter, r *http.Request) {
 var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeUploadMedia)
 	defer cigExchange.PrintAPIError(info)
 
@@ -148,7 +148,7 @@ var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 var GetOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeGetOfferingsMedia)
 	defer cigExchange.PrintAPIError(info)
 
@@ -178,7 +178,7 @@ var GetOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 var UpdateOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeUpdateOfferingsMedia)
 	defer cigExchange.PrintAPIError(info)
 
@@ -268,7 +268,7 @@ var UpdateOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 var DeleteOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeDeleteOfferingsMedia)
 	defer cigExchange.PrintAPIError(info)
 

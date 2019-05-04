@@ -16,7 +16,7 @@ import (
 var SendContactUsEmail = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeContactUs)
 	defer cigExchange.PrintAPIError(info)
 

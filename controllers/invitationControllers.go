@@ -25,7 +25,7 @@ type invitationRequest struct {
 var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeCreateInvitation)
 	defer cigExchange.PrintAPIError(info)
 
@@ -166,7 +166,7 @@ var SendInvitation = func(w http.ResponseWriter, r *http.Request) {
 var GetInvitations = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeGetInvitations)
 	defer cigExchange.PrintAPIError(info)
 
@@ -210,7 +210,7 @@ var GetInvitations = func(w http.ResponseWriter, r *http.Request) {
 var DeleteInvitation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeDeleteInvitation)
 	defer cigExchange.PrintAPIError(info)
 
@@ -281,7 +281,7 @@ var DeleteInvitation = func(w http.ResponseWriter, r *http.Request) {
 var AcceptInvitation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeAcceptInvitation)
 	defer cigExchange.PrintAPIError(info)
 

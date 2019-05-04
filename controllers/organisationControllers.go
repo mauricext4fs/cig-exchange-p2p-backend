@@ -14,7 +14,7 @@ import (
 var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeGetOrganisation)
 	defer cigExchange.PrintAPIError(info)
 
@@ -73,7 +73,7 @@ var GetOrganisation = func(w http.ResponseWriter, r *http.Request) {
 var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeGetOrganisations)
 	defer cigExchange.PrintAPIError(info)
 
@@ -141,7 +141,7 @@ var GetOrganisations = func(w http.ResponseWriter, r *http.Request) {
 var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeCreateOrganisation)
 	defer cigExchange.PrintAPIError(info)
 
@@ -238,7 +238,7 @@ var CreateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeUpdateOrganisation)
 	defer cigExchange.PrintAPIError(info)
 
@@ -358,7 +358,7 @@ var UpdateOrganisation = func(w http.ResponseWriter, r *http.Request) {
 var DeleteOrganisation = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeDeleteOrganisation)
 	defer cigExchange.PrintAPIError(info)
 
@@ -431,7 +431,7 @@ var DeleteOrganisation = func(w http.ResponseWriter, r *http.Request) {
 var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeGetUsers)
 	defer cigExchange.PrintAPIError(info)
 
@@ -482,7 +482,7 @@ var GetOrganisationUsers = func(w http.ResponseWriter, r *http.Request) {
 var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeDeleteUser)
 	defer cigExchange.PrintAPIError(info)
 
@@ -563,7 +563,7 @@ var DeleteOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 var AddOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeAddUser)
 	defer cigExchange.PrintAPIError(info)
 
@@ -631,7 +631,7 @@ var AddOrganisationUser = func(w http.ResponseWriter, r *http.Request) {
 var GetDashboardInfo = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeGetDashboard)
 	defer cigExchange.PrintAPIError(info)
 
@@ -679,7 +679,7 @@ var GetDashboardInfo = func(w http.ResponseWriter, r *http.Request) {
 var GetDashboardUsersInfo = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeGetDashboardUsers)
 	defer cigExchange.PrintAPIError(info)
 
@@ -727,7 +727,7 @@ var GetDashboardUsersInfo = func(w http.ResponseWriter, r *http.Request) {
 var GetDashboardOfferingsBreakdown = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeGetDashboardBreakdown)
 	defer cigExchange.PrintAPIError(info)
 
@@ -775,7 +775,7 @@ var GetDashboardOfferingsBreakdown = func(w http.ResponseWriter, r *http.Request
 var GetDashboardOfferingsClicks = func(w http.ResponseWriter, r *http.Request) {
 
 	// create user activity record and print error with defer
-	info := cigExchange.PrepareActivityInformation(r.RemoteAddr)
+	info := cigExchange.PrepareActivityInformation(r)
 	defer auth.CreateUserActivity(info, models.ActivityTypeGetDashboardClick)
 	defer cigExchange.PrintAPIError(info)
 
