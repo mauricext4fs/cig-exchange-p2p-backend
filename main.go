@@ -75,6 +75,7 @@ func main() {
 	router.HandleFunc(tradingBaseURI+"ping", controllers.Ping).Methods("GET")
 	router.HandleFunc(tradingBaseURI+"users/activities", controllers.CreateUserActivity).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/signup", userAPI.CreateUserHandler).Methods("POST")
+	router.HandleFunc(tradingBaseURI+"users/pingdom/signup", userAPI.CreateUserHandlerPingdom).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/signin", userAPI.GetUserHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/send_otp", userAPI.SendCodeHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/verify_otp", userAPI.VerifyCodeHandler).Methods("POST")
