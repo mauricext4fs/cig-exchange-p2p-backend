@@ -135,8 +135,16 @@ var CreateOffering = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// get new offering from db
+	createdOffering, apiError := models.GetOffering(offering.ID)
+	if apiError != nil {
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
 	// add multilang fields
-	offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(offering)
+	offeringMMap, apiError := cigExchange.PrepareResponseForMultilangModel(createdOffering)
 	if apiError != nil {
 		info.APIError = apiError
 		cigExchange.RespondWithAPIError(w, info.APIError)
