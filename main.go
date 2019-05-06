@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 )
@@ -75,7 +76,9 @@ func main() {
 	router.HandleFunc(tradingBaseURI+"ping", controllers.Ping).Methods("GET")
 	router.HandleFunc(tradingBaseURI+"users/activities", controllers.CreateUserActivity).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/signup", userAPI.CreateUserHandler).Methods("POST")
+	router.HandleFunc(tradingBaseURI+"users/signup/{user_id}/webauthn", userAPI.CreateUserWebAuthnHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/signin", userAPI.GetUserHandler).Methods("POST")
+	router.HandleFunc(tradingBaseURI+"users/signin/{user_id}/webauthn", userAPI.GetUserWebAuthnHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/send_otp", userAPI.SendCodeHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/verify_otp", userAPI.VerifyCodeHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/accept-invitation", controllers.AcceptInvitation).Methods("POST")
@@ -97,8 +100,14 @@ func main() {
 	// shedule tasks
 	tasks.ScheduleTasks()
 
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := handlers.AllowedOrigins([]string{"http://127.0.0.1:9005"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	headersOk2 := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
+	headersOk3 := handlers.AllowedHeaders([]string{"Access-Control-Allow-Credentials", "true"})
+
 	// launch the app
-	err := http.ListenAndServe(":"+port, router)
+	err := http.ListenAndServe(":"+port, handlers.CORS(headersOk, originsOk, methodsOk, headersOk2, headersOk3)(router))
 	if err != nil {
 		fmt.Print(err)
 	}
