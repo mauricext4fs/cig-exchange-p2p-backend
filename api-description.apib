@@ -400,6 +400,20 @@ Delete offering media.
 + Response 204
 
 
+# Group Trading/Offering Media
+
+## invest/api/offerings/{offering}/media [/invest/api/offerings/{offering}/media]
+
+### Get offering media [GET]
+List all public media for the offering
+
++ Parameters
+    + offering: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+
++ Response 200 (application/json)
+    + Attributes (array[Offering Media Response])
+
+
 # Group P2P/Invitations
 
 ## p2p/api/organisations/{organisation}/invitations [/p2p/api/organisations/{organisation}/invitations]
