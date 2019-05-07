@@ -9,7 +9,6 @@ import (
 	"mime"
 	"net/http"
 	"path"
-	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -101,16 +100,12 @@ var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filetype := http.DetectContentType(fileBytes)
-	typeArr := strings.Split(filetype, "/")
 
 	// fill mediasize and type
 	media := &models.Media{}
 	media.FileSize = len(fileBytes)
 	media.MimeType = filetype
-	media.Type = typeArr[0]
-	if len(typeArr) > 1 {
-		media.Subtype = &typeArr[1]
-	}
+	media.Type = models.MediaTypeDocument
 
 	exts, err := mime.ExtensionsByType(filetype)
 	if err != nil {
@@ -252,6 +247,12 @@ var UpdateOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 
 	// remove unknow fields from map
 	filteredMediaMap := cigExchange.FilterUnknownFields(media, mediaMap)
+
+	if filteredMediaMap["type"] != models.MediaTypeDocument && filteredMediaMap["type"] != models.MediaTypeImage {
+		info.APIError = cigExchange.NewInvalidFieldError("type", "Required field 'type' can be only 'offering-image' or 'offering-document'")
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
 
 	// set ID
 	filteredMediaMap["id"] = mediaID
