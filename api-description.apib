@@ -753,9 +753,13 @@ Only admin user can delete organisation.
 + `is_visible`: `true` (boolean, required) - offering visibility flag
 + `offering_direct_url` (Offering Direct Urls, required) - offering direct url
 + `organisation_id`: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - offering organisation
-+ `media` (array[Offering Media Response]) - offering media
++ `media` (Offering Media Types) - offering media
 + `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering creation timestamp
 + `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - offering updated timestamp
+
+### Offering Media Types
++ `offering-images` (array[Offering Media Response]) - offering images
++ `offering-documents` (array[Offering Media Response]) - offering documents
 
 ### Update User Request
 + `name`: `Updated First Name` (string) - user first name
