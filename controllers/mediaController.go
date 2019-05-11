@@ -4,7 +4,6 @@ import (
 	cigExchange "cig-exchange-libs"
 	"cig-exchange-libs/auth"
 	"cig-exchange-libs/models"
-	"encoding/json"
 	"io/ioutil"
 	"mime"
 	"net/http"
@@ -102,10 +101,11 @@ var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 	filetype := http.DetectContentType(fileBytes)
 
 	// fill mediasize and type
-	media := &models.Media{}
+	media := &models.MediaWithIndex{Media: &models.Media{}, Index: 100}
 	media.FileSize = len(fileBytes)
 	media.MimeType = filetype
 	media.Type = models.MediaTypeDocument
+	media.Index = 100
 
 	exts, err := mime.ExtensionsByType(filetype)
 	if err != nil {
@@ -236,36 +236,66 @@ var UpdateOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mediaMap := make(map[string]interface{})
-	// decode media object from request body
-	err = json.NewDecoder(r.Body).Decode(&mediaMap)
-	if err != nil {
-		info.APIError = cigExchange.NewRequestDecodingError(err)
-		cigExchange.RespondWithAPIError(w, info.APIError)
-		return
-	}
-
-	// remove unknow fields from map
-	filteredMediaMap := cigExchange.FilterUnknownFields(media, mediaMap)
-
-	if filteredMediaMap["type"] != models.MediaTypeDocument && filteredMediaMap["type"] != models.MediaTypeImage {
-		info.APIError = cigExchange.NewInvalidFieldError("type", "Required field 'type' can be only 'offering-image' or 'offering-document'")
-		cigExchange.RespondWithAPIError(w, info.APIError)
-		return
-	}
-
-	// set ID
-	filteredMediaMap["id"] = mediaID
-
-	// update media
-	apiError = media.Update(filteredMediaMap)
+	// get exisitng media model
+	offeringMedia, apiError := models.GetOfferingMedia(offeringID, mediaID)
 	if apiError != nil {
 		info.APIError = apiError
 		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
 
-	cigExchange.Respond(w, media)
+	// read media
+	updateMedia := &models.Media{}
+	original, filtered, apiError := cigExchange.ReadAndParseRequest(r.Body, updateMedia)
+	if apiError != nil {
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
+	// check required field
+	if len(updateMedia.Type) == 0 {
+		info.APIError = cigExchange.NewInvalidFieldError("type", "Required field 'type' is missing")
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+	if updateMedia.Type != models.MediaTypeDocument && updateMedia.Type != models.MediaTypeImage {
+		info.APIError = cigExchange.NewInvalidFieldError("type", "Required field 'type' can be only 'offering-image' or 'offering-document'")
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
+	// set ID
+	filtered["id"] = mediaID
+
+	// update media
+	apiError = media.Update(filtered)
+	if apiError != nil {
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
+	// parse index
+	index, apiError := cigExchange.ParseIndex(original)
+	if apiError != nil {
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
+	// update media index
+	apiError = offeringMedia.UpdateIndex(index)
+	if apiError != nil {
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
+	// prepare response
+	mediaResponse := &models.MediaWithIndex{Media: media, Index: index}
+
+	cigExchange.Respond(w, mediaResponse)
 }
 
 // DeleteOfferingMedia handles DELETE organisations/{organisation_id}/offerings/{offering_id}/media/{media_id} endpoint
