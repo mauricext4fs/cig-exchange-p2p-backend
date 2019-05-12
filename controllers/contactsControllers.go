@@ -140,19 +140,10 @@ var CreateContact = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// default index
-	index := int32(500)
-	// get index from original map
-	if indexVal, ok := original["index"]; ok {
-		if indexInt, ok := cigExchange.ConvertToInt32(indexVal); ok {
-			index = indexInt
-		} else {
-			info.APIError = cigExchange.NewInvalidFieldError("index", "Index is not integer")
-			cigExchange.RespondWithAPIError(w, info.APIError)
-			return
-		}
-	} else {
-		info.APIError = cigExchange.NewInvalidFieldError("index", "Index is missing")
+	// parse index
+	index, apiError := cigExchange.ParseIndex(original)
+	if apiError != nil {
+		info.APIError = apiError
 		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
@@ -235,20 +226,10 @@ var UpdateContact = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// default index
-	index := int32(500)
-	// get index from original map
-	if indexVal, ok := original["index"]; ok {
-		// convert index to int
-		if indexInt, ok := cigExchange.ConvertToInt32(indexVal); ok {
-			index = indexInt
-		} else {
-			info.APIError = cigExchange.NewInvalidFieldError("index", "Index is not integer")
-			cigExchange.RespondWithAPIError(w, info.APIError)
-			return
-		}
-	} else {
-		info.APIError = cigExchange.NewInvalidFieldError("index", "Index is missing")
+	// parse index
+	index, apiError := cigExchange.ParseIndex(original)
+	if apiError != nil {
+		info.APIError = apiError
 		cigExchange.RespondWithAPIError(w, info.APIError)
 		return
 	}
