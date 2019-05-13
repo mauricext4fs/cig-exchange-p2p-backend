@@ -76,7 +76,9 @@ func main() {
 	router.HandleFunc(tradingBaseURI+"users/activities", controllers.CreateUserActivity).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/signup", userAPI.CreateUserHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/pingdom/signup", userAPI.CreateUserHandlerPingdom).Methods("POST")
+	router.HandleFunc(tradingBaseURI+"users/signup/{user_id}/webauthn", userAPI.CreateUserWebAuthnHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/signin", userAPI.GetUserHandler).Methods("POST")
+	router.HandleFunc(tradingBaseURI+"users/signin/{user_id}/webauthn", userAPI.GetUserWebAuthnHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/send_otp", userAPI.SendCodeHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/verify_otp", userAPI.VerifyCodeHandler).Methods("POST")
 	router.HandleFunc(tradingBaseURI+"users/accept-invitation", controllers.AcceptInvitation).Methods("POST")
@@ -85,9 +87,6 @@ func main() {
 	router.HandleFunc(tradingBaseURI+"offerings/{offering_id}/media", controllers.GetOfferingMedia).Methods("GET")
 	router.HandleFunc(tradingBaseURI+"media/{media_file}", controllers.GetMedia).Methods("GET")
 	router.HandleFunc(tradingBaseURI+"contact_us", controllers.SendContactUsEmail).Methods("POST")
-
-	// attach JWT auth middleware
-	router.Use(userAPI.JwtAuthenticationHandler)
 
 	//router.NotFoundHandler = app.NotFoundHandler
 
