@@ -129,7 +129,7 @@ var UploadMedia = func(w http.ResponseWriter, r *http.Request) {
 	media.URL = "/invest/api/media/" + media.ID + media.FileExtension
 
 	// save new file url
-	cigExchange.GetDB().Save(media)
+	cigExchange.GetDB().Save(media.Media)
 
 	// save file to user_data folder
 	err = ioutil.WriteFile(path.Join(UserDataPath, media.ID)+media.FileExtension, fileBytes, 0644)

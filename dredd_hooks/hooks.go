@@ -97,9 +97,9 @@ func main() {
 
 	// create 'dredd' organisation
 	org := models.Organisation{
-		Name:         dredd,
-		ReferenceKey: dredd,
-		Status:       models.OrganisationStatusVerified,
+		Name:                      dredd,
+		ReferenceKey:              dredd,
+		Status:                    models.OrganisationStatusVerified,
 		OfferingRatingDescription: postgres.Jsonb{RawMessage: titleMetadata},
 	}
 	err := dbClient.Create(&org).Error
@@ -807,6 +807,23 @@ func main() {
 
 		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/users"
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/users"
+	})
+
+	h.Before("P2P/OrganisationUsers > p2p/api/organisations/{organisation}/users/{user} > Change organisation user role", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Organisation UUID missing"
+			return
+		}
+		if len(dredd4.ID) == 0 {
+			t.Fail = "User UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/users/" + dredd4.ID
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/users/" + dredd4.ID
 	})
 
 	h.Before("P2P/OrganisationUsers > p2p/api/organisations/{organisation}/users/{user} > Delete organisation user", func(t *trans.Transaction) {

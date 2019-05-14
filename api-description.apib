@@ -481,6 +481,21 @@ Returns all users belonging to sepcified organisation.
 
 ## p2p/api/organisations/{organisation}/users/{user} [/p2p/api/organisations/{organisation}/users/{user}]
 
+### Change organisation user role [PATCH]
+Update user role in organisation.
+Only organisation admin can use this api call.
+Organisation admin can unset himself from admin role.
+Last organisation admin can't be unset.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + user: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the user to delete from the organisation
+
++ Request (application/json)
+    + Attributes (Patch Organisation User Request)
+
++ Response 204
+
 ### Delete organisation user [DELETE]
 Deletes a specific organisation user.
 Only admin and organisation admin can use this api call.
@@ -857,6 +872,10 @@ Only admin user can delete organisation.
 + `title`: `Mr` (string, required) - user title
 + `email`: `email` (string, required) - user email
 + `last_login`: `2018-12-20T12:18:32+00:00` (string) - last login
++ `is_admin`: `false` (boolean) - user role in organisation
+
+### Patch Organisation User Request
++ `is_admin`: `true` (boolean, required) - new user role in organisation
 
 ### Offering Media Request
 + `type`: `offering-image` (string) - media object type: offering-image, offering-document
