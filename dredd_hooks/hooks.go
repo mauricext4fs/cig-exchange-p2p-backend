@@ -97,9 +97,9 @@ func main() {
 
 	// create 'dredd' organisation
 	org := models.Organisation{
-		Name:         dredd,
-		ReferenceKey: dredd,
-		Status:       models.OrganisationStatusVerified,
+		Name:                      dredd,
+		ReferenceKey:              dredd,
+		Status:                    models.OrganisationStatusVerified,
 		OfferingRatingDescription: postgres.Jsonb{RawMessage: titleMetadata},
 	}
 	err := dbClient.Create(&org).Error
@@ -657,6 +657,38 @@ func main() {
 		}
 	})
 
+	h.Before("P2P/Offering Media > p2p/api/organisations/{organisation}/offerings/{offering}/media/ordering > Upload offering media order", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Organisation UUID missing"
+			return
+		}
+		if len(offeringID) == 0 {
+			t.Fail = "Created offering UUID missing"
+			return
+		}
+
+		type ordering struct {
+			MediaID string `json:"media_id"`
+			Index   int32  `json:"index"`
+		}
+
+		body := make([]ordering, 0)
+		body = append(body, ordering{MediaID: mediaUUID, Index: 300})
+
+		b, err := json.Marshal(body)
+		if err != nil {
+			return
+		}
+
+		t.Request.Body = string(b)
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/offerings/" + offeringID + "/media/ordering"
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/offerings/" + offeringID + "/media/ordering"
+	})
+
 	h.Before("P2P/Offering Media > p2p/api/organisations/{organisation}/offerings/{offering}/media/{media} > Update offering media", func(t *trans.Transaction) {
 		if t.Request == nil {
 			return
@@ -807,6 +839,23 @@ func main() {
 
 		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/users"
 		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/users"
+	})
+
+	h.Before("P2P/OrganisationUsers > p2p/api/organisations/{organisation}/users/{user} > Change organisation user role", func(t *trans.Transaction) {
+		if t.Request == nil {
+			return
+		}
+		if len(orgUUID) == 0 {
+			t.Fail = "Organisation UUID missing"
+			return
+		}
+		if len(dredd4.ID) == 0 {
+			t.Fail = "User UUID missing"
+			return
+		}
+
+		t.Request.URI = "/p2p/api/organisations/" + orgUUID + "/users/" + dredd4.ID
+		t.FullPath = "/p2p/api/organisations/" + orgUUID + "/users/" + dredd4.ID
 	})
 
 	h.Before("P2P/OrganisationUsers > p2p/api/organisations/{organisation}/users/{user} > Delete organisation user", func(t *trans.Transaction) {
