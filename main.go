@@ -62,6 +62,7 @@ func main() {
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.UpdateOffering).Methods("PATCH")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}", controllers.DeleteOffering).Methods("DELETE")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}/media/upload", controllers.UploadMedia).Methods("PUT")
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}/media/ordering", controllers.UpdateMediaOrdering).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}/media/{media_id}", controllers.UpdateOfferingMedia).Methods("PATCH")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/offerings/{offering_id}/media/{media_id}", controllers.DeleteOfferingMedia).Methods("DELETE")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users", controllers.GetOrganisationUsers).Methods("GET")                // admin can receive users for any organisation, any user from organisation can see other members

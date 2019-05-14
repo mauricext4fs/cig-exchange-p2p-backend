@@ -373,6 +373,20 @@ Return media object on success.
 + Response 200 (application/json)
     + Attributes (Offering Media Response)
 
+## p2p/api/organisations/{organisation}/offerings/{offering}/media/ordering [/p2p/api/organisations/{organisation}/offerings/{offering}/media/ordering]
+
+### Upload offering media order [POST]
+Update ordering for array of media.
+
++ Parameters
+    + organisation: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - organisation id
+    + offering: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - UUID of the offering
+
++ Request
+    + Attributes (array[Update Offering Media Index Request])
+
++ Response 204
+
 ## p2p/api/organisations/{organisation}/offerings/{offering}/media/{media} [/p2p/api/organisations/{organisation}/offerings/{offering}/media/{media}]
 
 ### Update offering media [PATCH]
@@ -899,6 +913,10 @@ Only admin user can delete organisation.
 + `index`: `100` (number, required) - media index
 + `created_at`: `2018-12-20T12:18:32+00:00` (string, required) - media creation timestamp
 + `updated_at`: `2018-12-20T12:18:32+00:00` (string, required) - media updated timestamp
+
+### Update Offering Media Index Request
++ `media_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - media object uuid
++ `index`: `100` (number, required) - media index
 
 ### User Contact Request
 + `index`: `100` (number, required) - contact index

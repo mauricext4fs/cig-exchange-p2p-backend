@@ -4,6 +4,7 @@ import (
 	cigExchange "cig-exchange-libs"
 	"cig-exchange-libs/auth"
 	"cig-exchange-libs/models"
+	"encoding/json"
 	"io/ioutil"
 	"mime"
 	"net/http"
@@ -170,6 +171,108 @@ var GetOfferingMedia = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cigExchange.Respond(w, offeringMedias)
+}
+
+type updateMediaOrderingRequest struct {
+	MediaID string `json:"media_id"`
+	Index   int32  `json:"index"`
+}
+
+// UpdateMediaOrdering handles POST organisations/{organisation_id}/offerings/{offering_id}/media/ordering endpoint
+var UpdateMediaOrdering = func(w http.ResponseWriter, r *http.Request) {
+
+	// create user activity record and print error with defer
+	info := cigExchange.PrepareActivityInformation(r)
+	defer auth.CreateUserActivity(info, models.ActivityTypeOrderingMedia)
+	defer cigExchange.PrintAPIError(info)
+
+	// get request params
+	organisationID := mux.Vars(r)["organisation_id"]
+	offeringID := mux.Vars(r)["offering_id"]
+
+	// load context user info
+	loggedInUser, err := auth.GetContextValues(r)
+	if err != nil {
+		info.APIError = cigExchange.NewRoutingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+	info.LoggedInUser = loggedInUser
+
+	// check admin
+	userRole, apiError := models.GetUserRole(loggedInUser.UserUUID)
+	if apiError != nil {
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
+	// skip check for admin
+	if userRole != models.UserRoleAdmin {
+		// check organisation role
+		_, apiError := models.GetOrgUserRole(loggedInUser.UserUUID, organisationID)
+		if apiError != nil {
+			// user don't belong to organisation
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
+			return
+		}
+	}
+
+	// query offering from db
+	offering, apiError := models.GetOffering(offeringID)
+	if apiError != nil {
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
+	if offering.OrganisationID != organisationID {
+		info.APIError = cigExchange.NewAccessRightsError("Offering doesn't belong to organisation")
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
+	ordering := make([]*updateMediaOrderingRequest, 0)
+	// decode ordering from request body
+	err = json.NewDecoder(r.Body).Decode(&ordering)
+	if err != nil {
+		info.APIError = cigExchange.NewRequestDecodingError(err)
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
+	// get exisitng media model
+	offeringMedia, apiError := models.GetOfferingMediaForOffering(offeringID)
+	if apiError != nil {
+		info.APIError = apiError
+		cigExchange.RespondWithAPIError(w, info.APIError)
+		return
+	}
+
+	// update media index
+	for _, mIndex := range ordering {
+		apiError = updateMediaIndex(mIndex, offeringMedia)
+		if apiError != nil {
+			info.APIError = apiError
+			cigExchange.RespondWithAPIError(w, info.APIError)
+			return
+		}
+	}
+
+	w.WriteHeader(204)
+}
+
+func updateMediaIndex(order *updateMediaOrderingRequest, offeringMedia []*models.OfferingMedia) *cigExchange.APIError {
+
+	// iterate all offering media links
+	for _, link := range offeringMedia {
+		if link.MediaID == order.MediaID {
+			// update single offering media link order
+			return link.UpdateIndex(order.Index)
+		}
+	}
+	return cigExchange.NewInvalidFieldError("media_id", "Invalid media id: "+order.MediaID)
 }
 
 // UpdateOfferingMedia handles PATCH organisations/{organisation_id}/offerings/{offering_id}/media/{media_id} endpoint
