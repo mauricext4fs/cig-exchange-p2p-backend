@@ -67,6 +67,7 @@ func main() {
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users", controllers.GetOrganisationUsers).Methods("GET")                // admin can receive users for any organisation, any user from organisation can see other members
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users/{user_id}", controllers.DeleteOrganisationUser).Methods("DELETE") // admin can delete any user, org admin can't delete himself
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users/{user_id}", controllers.AddOrganisationUser).Methods("POST")      // admin can add user to organisation
+	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/users/{user_id}", controllers.ChangeOrganisationUser).Methods("PATCH")  // organisation admin can add and remove other organisation user
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/invitations", controllers.GetInvitations).Methods("GET")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/invitations", controllers.SendInvitation).Methods("POST")
 	router.HandleFunc(p2pBaseURI+"organisations/{organisation_id}/invitations/{user_id}", controllers.DeleteInvitation).Methods("DELETE")
