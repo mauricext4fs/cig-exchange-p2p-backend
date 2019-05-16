@@ -53,14 +53,20 @@ var SendContactUsEmail = func(w http.ResponseWriter, r *http.Request) {
 
 	mandrillClient := cigExchange.GetMandrill()
 
+	targetEmail := os.Getenv("CONTACTUS_TARGET_EMAIL")
+	// blackhole contact us emails in dev env
+	if cigExchange.IsDevEnv() {
+		targetEmail = "blackhole+" + targetEmail
+	}
+
 	recipients := []gochimp.Recipient{
-		gochimp.Recipient{Email: os.Getenv("CONTACTUS_TARGET_EMAIL"), Name: "CIG Exchange team", Type: "to"},
+		gochimp.Recipient{Email: targetEmail, Name: "CIG Exchange team", Type: "to"},
 	}
 
 	message := gochimp.Message{
 		Text:      fmt.Sprintf("Name:%s\nEmail:%s\n\nMessage:\n%s", contactInfo.Name, contactInfo.Email, contactInfo.Message),
 		Subject:   "Contact Us message",
-		FromEmail: os.Getenv("CONTACTUS_TARGET_EMAIL"),
+		FromEmail: targetEmail,
 		FromName:  "CIG Exchange contact us",
 		To:        recipients,
 	}
