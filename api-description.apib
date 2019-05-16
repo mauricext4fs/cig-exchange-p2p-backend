@@ -61,7 +61,21 @@ Create a new account.
     + Attributes (User Request)
 
 + Response 200 (application/json)
-    + Attributes (User Response)
+    + Attributes (User Signup Response)
+
+## invest/api/users/signup/{user}/webauthn [/invest/api/users/signup/{user}/webauthn]
+
+### Web Authn Signup [POST]
+This api call used in pair with 'Signup' or 'Create organisation'.
+Request body must contain Credential Creation Response.
+
++ Parameters
+    + user: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - user id
+
++ Request (application/json)
+    + Attributes (Credential Creation Response)
+
++ Response 204
 
 ## invest/api/users/signin [/invest/api/users/signin]
 
@@ -74,6 +88,21 @@ Either email or mobile should be specified.
 
 + Response 200 (application/json)
     + Attributes (User Response)
+
+## invest/api/users/signin/{user}/webauthn [/invest/api/users/signin/{user}/webauthn]
+
+### Web Authn Signin [POST]
+This api call used in pair with 'Verify OTP'.
+Request body must contain Credential Assertion Creation Response.
+
++ Parameters
+    + user: `38e47f7e-1ecc-11e9-ab14-d663bd873d94` (string, required) - user id
+
++ Request (application/json)
+    + Attributes (Credential Assertion Creation Response)
+
++ Response 200 (application/json)
+    + Attributes (OTP Response)
 
 ## invest/api/users/send_otp [/invest/api/users/send_otp]
 
@@ -113,7 +142,7 @@ On success, user id is returned.
     + Attributes (Create Organisation Request)
 
 + Response 200 (application/json)
-    + Attributes (User Response)
+    + Attributes (User Signup Response)
 
 
 # Group P2P/Me
@@ -821,6 +850,7 @@ Only admin user can delete organisation.
 + `phone_number`: `1111111111` (string, required) - user mobile number
 + `organisation_name`: `organisation_name` (string) - organisation name
 + `reference_key`: `reference_key` (string) - organisation reference key
++ `webauthn`: `false` (boolean, required) - 'true' for using web authn authorization
 
 ### Organisation Request
 + `type`: `type` (string) - organisation type
@@ -851,6 +881,7 @@ Only admin user can delete organisation.
 + `phone_number`: `1111111111` (string, required) - user mobile number
 + `reference_key`: `credit_24_gate` (string) - organisation reference key, required for 'p2p' platform
 + `platform`: `trading` (string, required) - platform to create account on, supported values are 'p2p' and 'trading'
++ `webauthn`: `false` (boolean, required) - 'true' for using web authn authorization
 
 ### User Signin Request
 + `email`: `blackhole+dev+test@cig-exchange.ch` (string) - user email
@@ -859,6 +890,22 @@ Only admin user can delete organisation.
 
 ### User Response
 + `uuid`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
+
+### User Signup Response
++ `uuid`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
++ `publicKey` (object) - web authn Credential Creation Options for 2-factor authorization
+
+### Credential Creation Response
++ `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - Credential Creation Response id
++ `rawId`: `raw id` (string, required) - Credential Creation Response rawID
++ `type`: `type` (string, required) - Credential Creation Response type
++ `response` (object, required) - Credential Creation Response response
+
+### Credential Assertion Creation Response
++ `id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - Credential Assertion Creation Response id
++ `rawId`: `raw id` (string, required) - Credential Assertion Creation Response rawID
++ `type`: `type` (string, required) - Credential Assertion Creation Response type
++ `response` (object, required) - Credential Assertion Creation Response response
 
 ### OTP Send Request
 + `uuid`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
@@ -870,7 +917,9 @@ Only admin user can delete organisation.
 + `code`: `123456` (string, required) - otp code
 
 ### OTP Response
-+ `jwt`: `1234567890` (string, required) - jwt for futher auth
++ `jwt`: `1234567890` (string) - jwt for futher auth
++ `status`: `success` (string, required) - auth status can be `success` and `web authn`
++ `publicKey` (object) - web authn Credential Assertion Request Options for 2-factor authorization
 
 ### Info Response
 + `user_id`: `fdb283d4-7341-4517-b501-371d22d27cfc` (string, required) - user account uuid
