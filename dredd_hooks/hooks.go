@@ -231,6 +231,22 @@ func main() {
 		setBodyValue(&t.Request.Body, "uuid", userUUID)
 	})
 
+	h.Before("Trading/Users > invest/api/users/signup/{user}/webauthn > Web Authn Signup", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+		t.Skip = true
+	})
+
+	h.Before("Trading/Users > invest/api/users/signin/{user}/webauthn > Web Authn Signin", func(t *trans.Transaction) {
+
+		if t.Request == nil {
+			return
+		}
+		t.Skip = true
+	})
+
 	h.BeforeValidation("Trading/Users > invest/api/users/send_otp > Send OTP", func(t *trans.Transaction) {
 
 		// happens when api is down

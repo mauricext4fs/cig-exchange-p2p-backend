@@ -90,6 +90,9 @@ func main() {
 	router.HandleFunc(tradingBaseURI+"media/{media_file}", controllers.GetMedia).Methods("GET")
 	router.HandleFunc(tradingBaseURI+"contact_us", controllers.SendContactUsEmail).Methods("POST")
 
+	// attach JWT auth middleware
+	router.Use(userAPI.JwtAuthenticationHandler)
+
 	//router.NotFoundHandler = app.NotFoundHandler
 
 	port := os.Getenv("DOCKER_LISTEN_DEFAULT_PORT")
